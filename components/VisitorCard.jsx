@@ -14,10 +14,10 @@ export default function VisitorCard({ visitor, onPress, refreshInvites }) {
   const [alertConfig, setAlertConfig] = useState({ visible: false, type: '', message: '', onConfirm: null });
 
   const handleCreateNewInvite = () => {
-    console.log(visitor);
+    // console.log(visitor);
     router.push({
       pathname: '/individualInvite',
-      params: { visitorName: visitor.visitor_name, visitorPhone: visitor.visitor_phone },
+      params: { cardVisitorName: visitor.visitor_name, cardVisitorPhone: visitor.visitor_phone },
     });
   };
 

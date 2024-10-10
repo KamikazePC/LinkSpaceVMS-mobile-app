@@ -90,10 +90,10 @@ const GroupInvite: React.FC = () => {
     }
 
     //Validate that date is not in the past
-    // if (startTime < new Date()) {
-    //   setAlertConfig({ visible: true, type: 'error', message: 'Please select a future time.' });
-    //   return;
-    // }
+    if (startTime < new Date()) {
+      setAlertConfig({ visible: true, type: 'error', message: 'Please select a future time.' });
+      return;
+    }
 
     setIsSubmitting(true);
 

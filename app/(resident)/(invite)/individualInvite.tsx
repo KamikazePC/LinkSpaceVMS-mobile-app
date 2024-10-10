@@ -17,7 +17,7 @@ import { darkColors, lightColors } from '../../../constants/ThemeColors';
 import { useTheme } from '../../../context/ThemeContext';
 import CustomAlert from '../../../components/CustomAlert';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 // Define the alert config state type
 interface AlertConfig {
@@ -35,13 +35,13 @@ interface Invite {
 const IndividualInviteScreen: React.FC = () => {
   const { user, fetchAndSetInvites } = useGlobalContext();
   const router = useRouter();
-  const { visitorName, visitorPhone } = useLocalSearchParams();
+  const {cardVisitorName, cardVisitorPhone } = useLocalSearchParams();
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
 
   // Define state types
-  const [visitorNameState, setVisitorName] = useState<string>('');
-  const [visitorPhoneState, setVisitorPhone] = useState<string>('');
+  const [visitorName, setVisitorName] = useState<string>('');
+  const [visitorPhone, setVisitorPhone] = useState<string>('');
   const [alertConfig, setAlertConfig] = useState<AlertConfig>({
     visible: false,
     type: '',
@@ -61,16 +61,20 @@ const IndividualInviteScreen: React.FC = () => {
   const [showStartTimePicker, setShowStartTimePicker] = useState<boolean>(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState<boolean>(false);
 
-  // useEffect(() => {
-  //   if (query.visitorName) {
-  //     setVisitorName(query.visitorName as string);
-  //   }
-  //   if (query.visitorPhone) {
-  //     setVisitorPhone(query.visitorPhone as string);
-  //   }
-  // }, [query]);
 
-  // Event handler types
+  useEffect(() => {
+    // console.log('cardVisitorName', cardVisitorName);
+    // console.log('cardVisitorPhone', cardVisitorPhone);
+    if (cardVisitorName) {
+      console.log(cardVisitorName);
+      setVisitorName(cardVisitorName as string);
+      console.log(visitorName);
+    }
+    if (cardVisitorPhone) {
+      setVisitorPhone(cardVisitorPhone as string);
+    }
+  }, [cardVisitorName, cardVisitorPhone]);
+
   const handleDateChange = (event: any, selected?: Date | undefined) => {
     const currentDate = selected || selectedDate;
     setShowDatePicker(false);
@@ -83,8 +87,8 @@ const IndividualInviteScreen: React.FC = () => {
     setShowStartTimePicker(false);
     if (selected) {
       setStartTime(selected);
-      if (selected >= endTime) {
-        setEndTime(new Date(selected.getTime() + 60 * 60 * 1000));
+      if (selected <= endTime) {
+        setEndTime(new Date(selected.getTime() ));
       }
     }
   };
@@ -92,7 +96,7 @@ const IndividualInviteScreen: React.FC = () => {
   const handleEndTimeChange = (event: any, selected?: Date | undefined) => {
     setShowEndTimePicker(false);
     if (selected && selected > startTime) {
-      setEndTime(new Date(selected.getTime() + 60 * 60 * 1000));
+      setEndTime(new Date(selected.getTime() ));
     }
   };
 
@@ -120,22 +124,22 @@ const IndividualInviteScreen: React.FC = () => {
       return;
     }
 
-    // //Validate that start time is not in the past
-    // if (startTime < new Date()) {
-    //   setAlertConfig({ visible: true, type: 'error', message: 'Please select a future time.' });
-    //   return;
-    // }
-
+    //Validate that start time is not in the past
+    if (startTime < new Date()) {
+      setAlertConfig({ visible: true, type: 'error', message: 'Please select a future time.' });
+      return;
+    }
 
     setIsSubmitting(true);
 
     try {
-      const date = moment(selectedDate).format('YYYY-MM-DD');
-      const formattedStartTime = moment(startTime).format('HH:mm');
-      const formattedEndTime = moment(endTime).format('HH:mm');
+      const timezone = 'Africa/Lagos';
+      const date = moment.tz(selectedDate, timezone).format('YYYY-MM-DD');
+      const formattedStartTime = moment.tz(startTime,  timezone);
+      const formattedEndTime = moment.tz(endTime, timezone);
 
-      const startDateTime = moment(`${date} ${formattedStartTime}`);
-      const endDateTime = moment(`${date} ${formattedEndTime}`);
+      const startDateTime = formattedStartTime;
+      const endDateTime = formattedEndTime;
       
       console.log('Before invite creation');
       const newInvite = await createInvite(
@@ -193,22 +197,23 @@ const IndividualInviteScreen: React.FC = () => {
         </View>
         <View style={styles.content}>
           <View style={styles.form}>
-            <TextInput
+              <TextInput
               style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
-              value={visitorName.toString()}
+              value={visitorName}
               onChangeText={setVisitorName}
               placeholder="Visitor Name"
               placeholderTextColor={colors.textSecondary}
             />
             <TextInput
               style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
-              value={visitorPhone.toString()}
+              value={visitorPhone}
               onChangeText={setVisitorPhone}
               placeholder="Visitor Phone (11 digits)"
               placeholderTextColor={colors.textSecondary}
               keyboardType="phone-pad"
               maxLength={11}
             />
+            
             <View style={styles.dateContainer}>
               <TouchableOpacity
                 style={[
