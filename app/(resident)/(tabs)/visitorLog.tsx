@@ -89,8 +89,8 @@ const VisitorLog: React.FC = () => {
     } else {
       filtered = filtered.filter((invite) => {
         const inviteDate = moment(invite.created_at);
-        const dateMatch = inviteDate.isBetween(moment(filterStartDate), moment(filterEndDate), 'day', '[)');
-        return ['pending', 'active', 'checked-in', 'paused'].includes(invite.status) || dateMatch;
+        const dateMatch = inviteDate.isBetween(moment(filterStartDate), moment(filterEndDate), 'day', '[]');
+        return ['pending', 'active', 'checked-in'].includes(invite.status) || dateMatch;
       });
     }
   
@@ -100,7 +100,7 @@ const VisitorLog: React.FC = () => {
 
   const tabData = useMemo<TabData>(() => {
     const expected = filteredInvites.filter(invite => invite.status === 'pending');
-    const current = filteredInvites.filter(invite => ['checked-in', 'paused', 'active'].includes(invite.status));
+    const current = filteredInvites.filter(invite => ['checked-in', 'active'].includes(invite.status));
     let previous = filteredInvites.filter(invite => ['checked-out', 'completed'].includes(invite.status));
     
     if (previous.length === 0 && !isSearching) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { handleInviteScan } from '../../lib/invite';
@@ -6,6 +6,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { lightColors, darkColors } from '../../constants/ThemeColors';
+import CustomAlert from '@context/components/CustomAlert';
+
+interface AlertConfig {
+  visible: boolean;
+  type: 'success' | 'error' | '';
+  message: string;
+}
+
 
 export default function InputOTPScreen() {
   const [otp, setOtp] = useState('');
@@ -14,24 +22,41 @@ export default function InputOTPScreen() {
   const { actionType } = useLocalSearchParams() as { actionType: 'fetch' | 'checkin' | 'checkout' };
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
+  const [alertConfig, setAlertConfig] = useState<AlertConfig>({
+    visible: false,
+    type: '',
+    message: '',
+  });
+
+  const handleAlertClose = useCallback(() => {
+    setAlertConfig((prevConfig) => ({ ...prevConfig, visible: false }));
+  }, []);
 
   const handleVerifyOTP = async () => {
     if (otp.length !== 6) {
-        Alert.alert('Invalid OTP', 'Please enter a 6-digit OTP');
+      setAlertConfig({
+        visible: true,
+        type: 'error',
+        message: 'Invalid OTP',
+      })
         return;
     }
 
     setLoading(true);
     try {
         const inviteDetails = await handleInviteScan(otp, actionType);
-        console.log(inviteDetails);
+        // console.log(inviteDetails);
 
             router.push({
                 pathname: '/inviteData',
                 params: { invite: JSON.stringify(inviteDetails), actionType },
             });
-    } catch (error) {
-        Alert.alert('Error', 'Failed to verify OTP. Please try again.');
+    } catch (error: any) { // Update the type of error) {
+        setAlertConfig({
+            visible: true,
+            type: 'error',
+            message: error.message || 'Failed to verify OTP',
+        })
         console.error('Error verifying OTP:', error); // Log error details for debugging
     } finally {
         setLoading(false);
@@ -71,6 +96,12 @@ return (
         )}
       </TouchableOpacity>
     </View>
+    <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        message={alertConfig.message}
+        onClose={handleAlertClose}
+      />
   </SafeAreaView>
 );
 };

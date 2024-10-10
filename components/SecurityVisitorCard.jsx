@@ -7,56 +7,12 @@ import moment from 'moment';
 import { useTheme } from '../context/ThemeContext';
 import { lightColors, darkColors } from '../constants/ThemeColors';
 
-export default function SecurityVisitorManagement({ visitor, refreshInvites }) {
+export default function SecurityVisitorCard({ visitor, refreshInvites }) {
   const { user } = useGlobalContext();
   const [loading, setLoading] = useState(false);
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
 
-  const handleEndInvite = async () => {
-    Alert.alert(
-      'End Visit',
-      'Are you sure you want to end this visit?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'End Visit',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              await endInvite(visitor.id);
-              refreshInvites();
-              Alert.alert('Success', 'Visit ended successfully');
-            } catch (error) {
-              Alert.alert('Error', error.message || 'Failed to end visit');
-            } finally {
-              setLoading(false);
-            }
-          }
-        },
-      ],
-      { cancelable: true }
-    );
-  };
-
-  const handlePauseResumeInvite = async () => {
-    setLoading(true);
-    try {
-      if (visitor.status === 'paused') {
-        await resumeInvite(visitor.id);
-        Alert.alert('Success', 'Visit resumed successfully');
-      } else {
-        await pauseInvite(visitor.id);
-        Alert.alert('Success', 'Visit paused successfully');
-      }
-      refreshInvites();
-    } catch (error) {
-      Alert.alert('Error', `Failed to ${visitor.status === 'paused' ? 'resume' : 'pause'} visit`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getStatusColor = () => {
     switch (visitor.status) {
@@ -78,34 +34,30 @@ export default function SecurityVisitorManagement({ visitor, refreshInvites }) {
           <MaterialCommunityIcons name="home-account" size={16} color={colors.textSecondary} />
           {' '}Address: {visitor.address}
         </Text>
-        {/* ... (other detail texts) */}
+        {visitor.status === 'checked-in' && (
+          <Text style={styles.detailText}>
+            <Ionicons name="time-outline" size={16} color="#666" />
+            {' '}Check-in: {moment(visitor.entryTime).format('LLL')}
+          </Text>
+        )}
+        {visitor.status === 'active' && (
+          <>
+          <Text style={styles.detailText}>
+            <Ionicons name="time-outline" size={16} color="#666" />
+            {' '}Check-in: {moment(visitor.entryTime).format('LLL')}
+          </Text><Text style={styles.detailText}>
+          <Ionicons name="people-outline" size={16} color="#666" />
+          {' '}Number of Visitors: {visitor.members_checked_in}
+        </Text>
+        </>
+        )}
+        {visitor.status === 'checked-out' && (
+          <Text style={styles.detailText}>
+            <Ionicons name="time-outline" size={16} color="#666" />
+            {' '}Check-out: {moment(visitor.exit_time).format('LLL')}
+          </Text>
+        )}
       </View>
-      {visitor.invite_type === 'utility' && visitor.status !== 'checked-out' && (
-        <View style={styles.actions}>
-          <TouchableOpacity
-            onPress={handlePauseResumeInvite}
-            style={[styles.button, { backgroundColor: visitor.status === 'paused' ? colors.success : colors.warning }]}
-            disabled={loading}
-          >
-            <MaterialCommunityIcons 
-              name={visitor.status === 'paused' ? 'play' : 'pause'} 
-              size={20} 
-              color={colors.surface} 
-            />
-            <Text style={[styles.buttonText, { color: colors.surface }]}>
-              {visitor.status === 'paused' ? 'Resume' : 'Pause'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleEndInvite}
-            style={[styles.button, { backgroundColor: colors.error }]}
-            disabled={loading}
-          >
-            <MaterialCommunityIcons name="exit-to-app" size={20} color={colors.surface} />
-            <Text style={[styles.buttonText, { color: colors.surface }]}>End Visit</Text>
-          </TouchableOpacity>
-        </View>
-      )}
       {loading && <ActivityIndicator style={styles.loading} size="large" color={colors.primary} />}
     </View>
   );
