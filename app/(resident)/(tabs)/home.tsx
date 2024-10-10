@@ -47,7 +47,7 @@ interface Notification {
   read: boolean;
   title: string;
   message: string;
-  createdAt: string;
+  created_at: string;
 }
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onPress, colors }) => (
   <Animated.View
@@ -63,7 +63,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onPre
       <View style={styles.notificationTextContent}>
         <Text style={[styles.notificationTitle, { color: colors.text } as TextStyle, !notification.read && styles.unreadText]}>{notification.title}</Text>
         <Text style={[styles.notificationText, { color: colors.textSecondary }]}>{notification.message}</Text>
-        <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>{new Date(notification.createdAt).toLocaleString()}</Text>
+        <Text style={[styles.notificationTime, { color: colors.textSecondary }]}>{moment(notification.created_at).format('MMM DD, YYYY hh:mm A')}</Text>
       </View>
     </TouchableOpacity>
   </Animated.View>
@@ -388,22 +388,7 @@ interface Colors {
   textSecondary: string;
 }
 
-// const VisitItem = ({ visit, colors}: { visit: any; colors: Colors }) => (
-//   <Animated.View entering={FadeInDown.delay(100)} style={[styles.visitItem, { borderColor: colors.border }]}>
-//     <View style={[styles.visitIconContainer, { backgroundColor: colors.primaryDark }]}>
-//       <Ionicons name="person-outline" size={24} color={colors.surface} />
-//     </View>
-//     <View style={styles.visitInfo}>
-//       <Text style={[styles.visitName, { color: colors.text }]}>{visit.visitor_Name}</Text>
-//       <Text style={[styles.visitDate, { color: colors.textSecondary }]}>
-//         Starts on {moment(visit.startDateTime).format('MMM DD, YYYY hh:mm A')}
-//       </Text>
-//       <Text style={[styles.visitTime, { color: colors.textSecondary }]}>
-//         {moment(visit.startDateTime).fromNow()}
-//       </Text>
-//     </View>
-//   </Animated.View>
-// );
+
 
 const styles = StyleSheet.create({
   container: {
