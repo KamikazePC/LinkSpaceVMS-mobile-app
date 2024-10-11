@@ -73,7 +73,7 @@ const SecurityHomeScreen: React.FC = () => {
         <Text style={[styles.inviteName, { color: colors.primary }]}>{item.visitor_name}</Text>
         <Text style={[styles.inviteDetails, { color: colors.textSecondary }]}>Visiting: {item.resident_name}</Text>
         <Text style={[styles.inviteDetails, { color: colors.textSecondary }]}>Status: {item.status}</Text>
-        {(item.status === 'checked-in' || item.status === 'active') && (
+        {( item.status === 'active') && (
           <Text style={[styles.inviteDetails, { color: colors.textSecondary }]}>
             Number of Visitors : {item.members_checked_in}
           </Text>
