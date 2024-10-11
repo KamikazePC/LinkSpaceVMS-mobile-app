@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text, View, StyleSheet, Button, TouchableOpacity } from 'react-native';
 import { Camera, useCameraPermissions, CameraView } from 'expo-camera';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+
 
 // Define the props type for QRCodeScanner
 interface QRCodeScannerProps {
@@ -42,7 +42,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan }) => {
         style={styles.camera}
         facing={facing}
         barcodeScannerSettings={{
-          barcodeTypes: [BarCodeScanner.Constants.BarCodeType.qr], // Corrected here
+          barcodeTypes: ["qr"], // Corrected here
         }}
         onBarcodeScanned={handleBarCodeScanned}
          >
