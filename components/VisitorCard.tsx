@@ -7,11 +7,25 @@ import { useTheme } from '../context/ThemeContext';
 import { lightColors, darkColors } from '../constants/ThemeColors';
 import CustomAlert from './CustomAlert';
 
-export default function VisitorCard({ visitor, onPress, refreshInvites }) {
+interface Visitor {
+  id: string;
+  visitor_name: string;
+  visitor_phone: string;
+  group_name?: string;
+  status: 'pending' | 'checked-in' | 'paused' | 'active' | 'checked-out' | 'completed';
+}
+
+interface VisitorCardProps {
+  visitor: Visitor;
+  onPress: (visitor: Visitor) => void;
+  refreshInvites: () => void;
+}
+
+export default function VisitorCard({ visitor, onPress, refreshInvites }: VisitorCardProps) {
   const router = useRouter();
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
-  const [alertConfig, setAlertConfig] = useState({ visible: false, type: '', message: '', onConfirm: null });
+  const [alertConfig, setAlertConfig] = useState<{ visible: boolean; type: '' | 'success' | 'error' | 'confirm' | ''; message: string; onConfirm: (() => Promise<void>) | null }>({ visible: false, type: '', message: '', onConfirm: null });
 
   const handleCreateNewInvite = () => {
     // console.log(visitor);
@@ -33,18 +47,21 @@ export default function VisitorCard({ visitor, onPress, refreshInvites }) {
           setAlertConfig({
             visible: true,
             type: 'success',
-            message: 'Invite deleted successfully'
+            message: 'Invite deleted successfully',
+            onConfirm: null, // Set to null or provide a default function
           });
         } catch (error) {
           setAlertConfig({
             visible: true,
             type: 'error',
-            message: error.message || 'Failed to delete invite'
+            message: (error as Error).message || 'Failed to delete invite',
+            onConfirm: null, // Set to null or provide a default function
           });
         }
       }
     });
   };
+  
 
   const handleAlertClose = () => {
     if (alertConfig.type === 'confirm' && alertConfig.onConfirm) {
@@ -53,7 +70,7 @@ export default function VisitorCard({ visitor, onPress, refreshInvites }) {
     setAlertConfig({ ...alertConfig, visible: false, onConfirm: null });
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return colors.warning;
       case 'checked-in': return colors.success;
@@ -65,7 +82,7 @@ export default function VisitorCard({ visitor, onPress, refreshInvites }) {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return 'schedule';
       case 'checked-in': return 'login';

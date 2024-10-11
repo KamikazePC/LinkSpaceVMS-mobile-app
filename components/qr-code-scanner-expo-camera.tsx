@@ -1,12 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Text, View, StyleSheet, Button, TouchableOpacity } from 'react-native';
 import { Camera, useCameraPermissions, CameraView } from 'expo-camera';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 
-const QRCodeScanner = ({ onScan }) => {
+// Define the props type for QRCodeScanner
+interface QRCodeScannerProps {
+  onScan: (data: string) => void; // Function to handle scanned data
+}
+
+const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan }) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
-  const [facing, setFacing] = useState('back');
+  const [facing, setFacing] = useState<'front' | 'back'>('back');
 
   if (!permission) {
     return <View />;
@@ -21,31 +26,26 @@ const QRCodeScanner = ({ onScan }) => {
     );
   }
 
-  const handleBarCodeScanned = ({ type, data }) => {
+  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
     if (scanned) return;
     setScanned(true);
     onScan(data);
   };
 
-  function toggleCameraFacing() {
+  const toggleCameraFacing = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
-  }
+  };
 
   return (
     <View style={styles.container}>
-      <CameraView 
-        style={styles.camera} 
+      <CameraView
+        style={styles.camera}
         facing={facing}
         barcodeScannerSettings={{
-          barCodeTypes: [BarCodeScanner.Constants.BarCodeType.qr],
-          // barCodeTypes: ['qr'],
-          
+          barcodeTypes: [BarCodeScanner.Constants.BarCodeType.qr], // Corrected here
         }}
         onBarcodeScanned={handleBarCodeScanned}
-      >
-        {/* <View style={styles.overlay}>
-          <View style={styles.scanArea} />
-        </View> */}
+         >
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
             <Text style={styles.text}>Flip Camera</Text>

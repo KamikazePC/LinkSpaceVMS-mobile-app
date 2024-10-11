@@ -1,6 +1,13 @@
 import { AuthResponse, OAuthProvider, User } from "../types";
 import { supabase } from "./supabase";
 
+const validateAddressFormat = (address: string): boolean => {
+    // Example regex to match "Number Street Name"
+    const addressPattern = /^[0-9]+\s[A-Za-z\s]+$/;
+    return addressPattern.test(address);
+};
+
+
 export const createUser = async (
     email: string, 
     password: string, 
@@ -10,6 +17,12 @@ export const createUser = async (
     phone_number?: string
 ): Promise<User> => {
     try {
+
+        // Validate the address format (Number and Street Name)
+        if (!validateAddressFormat(address!)) {
+            throw new Error('Please enter the address in the format: "Number Street Name"');
+        }
+
         // Fetch the estate_id based on the registration_code
         const { data: estateData, error: estateError } = await supabase
           .from('estates')
@@ -21,6 +34,22 @@ export const createUser = async (
 
         const estate_id = estateData.id; // Get estate_id from the response
         
+        // Check if the address is already in use by another user in the same estate
+        const { data: existingAddress, error: addressError } = await supabase
+          .from('residents')
+          .select('id')
+          .eq('address', address)
+          .eq('estate_id', estate_id)  // Ensure the check is estate-specific
+          .single();
+
+        if (existingAddress) {
+            throw new Error('This address is already associated with another user in the same estate.');
+        }
+
+        if (addressError && addressError.code !== 'PGRST116') {
+            throw addressError;
+        }
+
         //Sign up the user with supabase auth
         const { data: authData, error: signUpError } = await supabase.auth.signUp({
             email, 
@@ -29,15 +58,21 @@ export const createUser = async (
 
         if (signUpError) throw signUpError;
 
+        if (!authData?.user) {
+            throw new Error('User creation failed');
+        }
+
+        const userId = authData.user.id.toString();
+
         const { data, error: insertError } = await supabase
           .from('residents')
           .insert([
             {
-                id: authData.user?.id.toString(), 
+                id: userId, 
                 email,
                 username, 
                 estate_id: estate_id,
-                address: address, 
+                address, 
                 phone_number: phone_number
             }
           ])
@@ -45,10 +80,21 @@ export const createUser = async (
 
           if (insertError) throw insertError;
 
+           // Fetch the user data to ensure the new resident data is available before sign-in
+        const { data: fetchedUser, error: fetchUserError } = await supabase
+          .from('residents')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (fetchUserError) throw fetchUserError;
+
+          console.log('User created successfully:', fetchedUser);
+
           // Automatically sign in the user after registration
           await signIn(email, password);
 
-          return data as User
+          return fetchedUser as User
     } catch (error) {
         console.error('Error creating user:', error);
         throw error;
@@ -65,7 +111,7 @@ export const signIn = async (email: string, password: string): Promise<AuthRespo
         })
 
         if (error) throw error;
-        console.log('Session created successfully:', user);
+        // console.log('Session created successfully:', user);
 
         const { data, error: fetchError} = await supabase
          .from('residents')
@@ -89,9 +135,9 @@ export const signIn = async (email: string, password: string): Promise<AuthRespo
 
          try {
             await addDevice(data.id, deviceId);
-            console.log('Device associated with user');
+            // console.log('Device associated with user');
           } catch (addDeviceError) {
-            console.error('Error associating device with user:', addDeviceError);
+            // console.error('Error associating device with user:', addDeviceError);
           }
 
           // Fetch the updated session to confirm changes

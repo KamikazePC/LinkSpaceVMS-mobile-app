@@ -3,7 +3,19 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 
-const OTPDisplay = ({ otp, colors, onCopy }) => {
+// Define types for props
+interface OTPDisplayProps {
+  otp: string; // The OTP string to display
+  colors: {
+    border: string; // Border color
+    background: string; // Background color
+    text: string; // Text color
+    primary: string; // Primary color for the copy button icon
+  };
+  onCopy: () => void; // Callback function to be called when OTP is copied
+}
+
+const OTPDisplay: React.FC<OTPDisplayProps> = ({ otp, colors, onCopy }) => {
   const handleCopy = async () => {
     await Clipboard.setStringAsync(otp);
     onCopy();
@@ -13,7 +25,10 @@ const OTPDisplay = ({ otp, colors, onCopy }) => {
     <View style={styles.otpContainer}>
       <View style={styles.otpBoxesContainer}>
         {otp.split('').map((digit, index) => (
-          <View key={index} style={[styles.otpBox, { borderColor: colors.border, backgroundColor: colors.background }]}>
+          <View
+            key={index}
+            style={[styles.otpBox, { borderColor: colors.border, backgroundColor: colors.background }]}
+          >
             <Text style={[styles.otpText, { color: colors.text }]}>{digit}</Text>
           </View>
         ))}

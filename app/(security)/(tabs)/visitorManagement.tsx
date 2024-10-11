@@ -17,22 +17,31 @@ import SecurityVisitorCard from '../../../components/SecurityVisitorCard';
 import { useTheme } from '../../../context/ThemeContext';
 import { lightColors, darkColors } from '../../../constants/ThemeColors';
 
+interface Invite {
+  id: string;
+  end_date_time: string;
+  is_recurring: boolean;
+  group_name?: string;
+  status: string;
+  visitor_name: string;
+  address: string;
+}
 
-export default function VisitorManagement() {
+const VisitorManagement: React.FC = () => {
   const { user, filteredInvites, setFilteredInvites } = useGlobalContext();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [invites, setInvites] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('Visitor');
-  const [visitorStatus, setVisitorStatus] = useState('current');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [invites, setInvites] = useState<Invite[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>('Visitor');
+  const [visitorStatus, setVisitorStatus] = useState<string>('current');
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
 
   const fetchData = async () => {
     try {
       const data = await fetchAllInvites();
-      const sortedData = data.sort((a, b) => new Date(b.end_date_time) - new Date(a.end_date_time));
+      const sortedData = data.sort((a: Invite, b: Invite) => new Date(b.end_date_time).getTime() - new Date(a.end_date_time).getTime());
       setInvites(sortedData);
       filterInvites(sortedData, activeTab, searchTerm, visitorStatus);
     } catch (error) {
@@ -58,11 +67,11 @@ export default function VisitorManagement() {
     filterInvites(invites, activeTab, searchTerm, visitorStatus);
   }, [activeTab, searchTerm, visitorStatus]);
 
-  const filterInvites = (invites, tab, searchTerm, status) => {
-    let filtered = invites;
+  const filterInvites = (invites: Invite[], tab: string, searchTerm: string, status: string) => {
+    let filtered: Invite[] = invites;
 
     if (tab === 'Utility') {
-      filtered = filtered.filter((invite) => invite.is_recurring );
+      filtered = filtered.filter((invite) => invite.is_recurring);
     }
     if (tab === 'Visitor') {
       filtered = filtered.filter((invite) => !invite.is_recurring || invite.group_name);
@@ -81,12 +90,12 @@ export default function VisitorManagement() {
     setFilteredInvites(filtered);
   };
 
-  const handleSearch = (term) => {
+  const handleSearch = (term: string) => {
     setSearchTerm(term);
   };
 
-  const renderItem = ({ item }) => (
-    <SecurityVisitorCard visitor={item} refreshInvites={fetchData} colors={colors} />
+  const renderItem = ({ item }: { item: Invite }) => (
+    <SecurityVisitorCard visitor={item} refreshInvites={fetchData} />
   );
 
   if (loading) {
@@ -131,13 +140,13 @@ export default function VisitorManagement() {
       </View>
       <View style={styles.statusTabContainer}>
         <TouchableOpacity
-          style={[styles.statusTab, visitorStatus === 'current' && styles.activeStatusTab, { backgroundColor: visitorStatus === 'current' ? colors.primary : colors.surface }]}
+          style={[styles.statusTab,  { backgroundColor: visitorStatus === 'current' ? colors.primary : colors.surface }]}
           onPress={() => setVisitorStatus('current')}
         >
           <Text style={[styles.statusTabText, { color: visitorStatus === 'current' ? colors.surface : colors.text }]}>Current</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.statusTab, visitorStatus === 'previous' && styles.activeStatusTab, { backgroundColor: visitorStatus === 'previous' ? colors.primary : colors.surface }]}
+          style={[styles.statusTab, { backgroundColor: visitorStatus === 'previous' ? colors.primary : colors.surface }]}
           onPress={() => setVisitorStatus('previous')}
         >
           <Text style={[styles.statusTabText, { color: visitorStatus === 'previous' ? colors.surface : colors.text }]}>Previous</Text>
@@ -156,7 +165,7 @@ export default function VisitorManagement() {
       />
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -241,3 +250,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+export default VisitorManagement;

@@ -26,8 +26,8 @@ const TabIcon = ({ iconName, color, name, focused }) => {
   }, [focused]);
 
   return (
-    <Animated.View 
-      style={{ 
+    <Animated.View
+      style={{
         transform: [{ scale: scaleAnim }],
         opacity: opacityAnim,
         alignItems: 'center',
@@ -35,12 +35,11 @@ const TabIcon = ({ iconName, color, name, focused }) => {
       }}
     >
       <Ionicons name={iconName} size={24} color={color} />
-      <Text style={{ color, fontWeight: focused ? '600' : '400', fontSize: 10, marginTop: 4 }}>
-        {name}
-      </Text>
+      <Text style={{ color, fontWeight: focused ? '600' : '400', fontSize: 10, marginTop: 4 }}>{name}</Text>
     </Animated.View>
   );
 };
+
 
 const CustomTabBar = ({ state, descriptors, navigation }) => {
   const colors = lightColors;
@@ -74,10 +73,10 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
             onPress={onPress}
             style={styles.tabItem}
           >
-            {options.tabBarIcon({ 
-              focused: isFocused, 
-              color: isFocused ? colors.primary : colors.textSecondary, 
-              size: 24 
+            {options.tabBarIcon({
+              focused: isFocused,
+              color: isFocused ? colors.primary : colors.textSecondary,
+              size: 24,
             })}
             {isFocused && <View style={[styles.activeIndicator, { backgroundColor: colors.primary }]} />}
           </TouchableOpacity>
@@ -98,41 +97,38 @@ export default function TabsLayout() {
           screenOptions={{
             headerShown: false,
             tabBarShowLabel: false,
-            tabBarStyle: [
-              styles.tabBarContainer,
-              { backgroundColor: lightColors.surface }
-            ],
+            tabBarStyle: [styles.tabBarContainer, { backgroundColor: lightColors.surface }],
             contentStyle: {
               paddingBottom: 60, // Adjust this value to match your tab bar height
             },
           }}
           tabBar={(props) => <CustomTabBar {...props} />}
         >
-          <Tabs.Screen 
+          <Tabs.Screen
             name="securityHome"
-            options={{ 
-              title: "Dashboard",
+            options={{
+              title: 'Dashboard',
               tabBarIcon: (props) => <TabIcon iconName="grid-outline" name="Dashboard" {...props} />,
             }}
           />
-          <Tabs.Screen 
+          <Tabs.Screen
             name="verifyCode"
-            options={{ 
-              title: "Verify",
+            options={{
+              title: 'Verify',
               tabBarIcon: (props) => <TabIcon iconName="qr-code-outline" name="Verify" {...props} />,
             }}
           />
-          <Tabs.Screen 
+          <Tabs.Screen
             name="visitorManagement"
-            options={{ 
-              title: "Visitors",
+            options={{
+              title: 'Visitors',
               tabBarIcon: (props) => <TabIcon iconName="people-outline" name="Visitors" {...props} />,
             }}
           />
-          <Tabs.Screen 
+          <Tabs.Screen
             name="security-profile-screen"
-            options={{ 
-              title: "Profile",
+            options={{
+              title: 'Profile',
               tabBarIcon: (props) => <TabIcon iconName="person-outline" name="Profile" {...props} />,
             }}
           />

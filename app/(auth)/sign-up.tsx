@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator, KeyboardTypeOptions } from 'react-native';
 import { createUser } from '../../lib/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -8,12 +8,27 @@ import { useTheme } from '../../context/ThemeContext';
 import { lightColors, darkColors } from '../../constants/ThemeColors';
 import CustomAlert from '../../components/CustomAlert';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import { addDevice } from '../../lib/device-manager';
 
+interface FormState {
+  email: string;
+  password: string;
+  username: string;
+  address: string;
+  phone_number: string;
+  registration_code: string;
+}
 
-const SignUpScreen = () => {
-  const { setUser, User, setIsLoggedIn } = useGlobalContext();
-  const [form, setForm] = useState({
+interface ErrorState extends FormState {}
+
+interface AlertConfig {
+  visible: boolean;
+  type: 'success' | 'error' | '';
+  message: string;
+}
+
+const SignUpScreen: React.FC = () => {
+  const { setUser, setIsLoggedIn } = useGlobalContext();
+  const [form, setForm] = useState<FormState>({
     email: '',
     password: '',
     username: '',
@@ -21,7 +36,7 @@ const SignUpScreen = () => {
     phone_number: '',
     registration_code: ''
   });
-  const [errors, setErrors] = useState({
+  const [errors, setErrors] = useState<ErrorState>({
     email: '',
     password: '',
     username: '',
@@ -29,27 +44,26 @@ const SignUpScreen = () => {
     phone_number: '',
     registration_code: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [alertConfig, setAlertConfig] = useState({ visible: false, type: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [alertConfig, setAlertConfig] = useState<AlertConfig>({ visible: false, type: '', message: '' });
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
 
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     let isValid = true;
-    const newErrors = { ...errors };
+    const newErrors: ErrorState = { ...errors };
 
     if (!form.username) {
       newErrors.username = 'Username is required';
       isValid = false;
-  } else if (!/^[a-zA-Z ]{3,}$/.test(form.username)) {
+    } else if (!/^[a-zA-Z ]{3,}$/.test(form.username)) {
       newErrors.username = 'Username must be at least 3 characters long and contain only letters and spaces';
       isValid = false;
-  } else if (form.username.trim().split(' ').length < 2) {
+    } else if (form.username.trim().split(' ').length < 2) {
       newErrors.username = 'Please enter both a first name and a last name';
       isValid = false;
-  }
-  
+    }
 
     if (!form.email) {
       newErrors.email = 'Email is required';
@@ -70,15 +84,16 @@ const SignUpScreen = () => {
     if (!form.password) {
       newErrors.password = 'Password is required';
       isValid = false;
-  } else if (!/^[A-Za-z\d@$!%*?&]{6,}$/.test(form.password)) {
+    } else if (!/^[A-Za-z\d@$!%*?&]{6,}$/.test(form.password)) {
       newErrors.password = 'Password must be at least 6 characters long and can contain letters, numbers, and special characters';
       isValid = false;
-  }
+    }
 
     if (!form.address) {
-      newErrors.address = 'Address ID is required';
+      newErrors.address = 'Address is required';
       isValid = false;
     }
+
     if (!form.registration_code) {
       newErrors.registration_code = 'Estate Code is required';
       isValid = false;
@@ -88,14 +103,27 @@ const SignUpScreen = () => {
     return isValid;
   };
 
-  const handleSignUp = async () => {
+  const handleSignUp = async (): Promise<void> => {
+    console.log('Form submitted:', form);
     if (!validateForm()) return;
+
 
     setIsSubmitting(true);
 
     try {
-      const newUser = await createUser(form.email, form.password, form.username, form.registration_code, form.address, form.phone_number);
-      await addDevice(newUser.$id);
+      console.log('Creating user...');
+      const newUser = await createUser(
+        form.email,
+        form.password,
+        form.username,
+        form.registration_code,
+        //address are lower case, remove whitespace, remove all non-alphanumeric characters
+        form.address.toLowerCase(),
+        form.phone_number
+      );
+
+      // console.log('User created:', newUser);
+
       setUser(newUser);
       setIsLoggedIn(true);
       setAlertConfig({
@@ -103,26 +131,32 @@ const SignUpScreen = () => {
         type: 'success',
         message: 'Account created successfully!',
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error during sign up:', error);
       setAlertConfig({
         visible: true,
         type: 'error',
-        message: error.message || 'Something went wrong during sign up'
+        message: error.message || 'Something went wrong during sign up',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-
-  const handleAlertClose = () => {
+  const handleAlertClose = (): void => {
     setAlertConfig({ ...alertConfig, visible: false });
     if (alertConfig.type === 'success') {
       router.replace('/home');
     }
   };
 
-  const renderInput = (key, placeholder, icon, keyboardType = 'default', secureTextEntry = false) => (
+  const renderInput = (
+    key: keyof FormState,
+    placeholder: string,
+    icon: keyof typeof Ionicons.glyphMap,
+    keyboardType: KeyboardTypeOptions = 'default',
+    secureTextEntry: boolean = false
+  ) => (
     <View style={styles.inputContainer}>
       <Ionicons name={icon} size={24} color={colors.primary} style={styles.inputIcon} />
       <TextInput
@@ -132,8 +166,8 @@ const SignUpScreen = () => {
           if (key === 'phone_number' && text.length > 11) {
             return; // Do not update if phone number is longer than 11 digits
           }
-          setForm(prev => ({ ...prev, [key]: text }));
-          setErrors(prev => ({ ...prev, [key]: '' }));
+          setForm((prev) => ({ ...prev, [key]: text }));
+          setErrors((prev) => ({ ...prev, [key]: '' }));
         }}
         placeholder={placeholder}
         placeholderTextColor={colors.textSecondary}
@@ -162,7 +196,7 @@ const SignUpScreen = () => {
         {errors.phone_number ? <Text style={styles.errorText}>{errors.phone_number}</Text> : null}
         {renderInput('password', 'Password', 'lock-closed-outline', 'default', true)}
         {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
-        {renderInput('address', 'Address', 'home-outline')}
+        {renderInput('address', 'Number Street Name', 'home-outline')}
         {errors.address ? <Text style={styles.errorText}>{errors.address}</Text> : null}
         {renderInput('registration_code', 'Estate Code', 'barcode-outline')}
         {errors.registration_code ? <Text style={styles.errorText}>{errors.registration_code}</Text> : null}

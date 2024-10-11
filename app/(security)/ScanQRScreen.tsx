@@ -6,25 +6,36 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../context/ThemeContext';
 import { lightColors, darkColors } from '../../constants/ThemeColors';
 
+// Define types for local search params
+interface LocalSearchParams {
+  actionType?: 'checkin' | 'checkout';
+}
+
+// Define types for the invite details object
+interface InviteDetails {
+  status: string;
+  invite_type?: string;
+}
+
+// Define the processed invite type if needed
+interface ProcessedInvite extends InviteDetails {
+  [key: string]: any;
+}
+
 export default function ScanQRScreen() {
   const router = useRouter();
-  const { actionType } = useLocalSearchParams();
-  const [processing, setProcessing] = useState(false);
+  const { actionType } = useLocalSearchParams() as LocalSearchParams;
+  const [processing, setProcessing] = useState<boolean>(false);
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
 
-  const handleScan = async (data) => {
+  const handleScan = async (data: string) => {
     if (processing) return;
     setProcessing(true);
 
     try {
       // First, fetch the invite details without performing any action
-      const inviteDetails = await handleInviteScan(data, 'fetch');
-
-      // // Check if it's a utility invite
-      // if (inviteDetails.invite_type === 'utility') {
-      //   throw new Error('QR code scanning is not supported for utility invites.');
-      // }
+      const inviteDetails: InviteDetails = await handleInviteScan(data, 'fetch');
 
       let canProceed = false;
 
@@ -39,13 +50,13 @@ export default function ScanQRScreen() {
       }
 
       // Process the invite with the correct action type
-      const processedInvite = await handleInviteScan(data, actionType);
+      const processedInvite: ProcessedInvite = await handleInviteScan(data, actionType as 'checkin' | 'checkout');
 
       router.push({
         pathname: '/inviteData',
         params: { invite: JSON.stringify(processedInvite), actionType },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing QR code:', error);
       Alert.alert('Error', error.message || 'Failed to process QR code');
     } finally {
@@ -59,7 +70,6 @@ export default function ScanQRScreen() {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

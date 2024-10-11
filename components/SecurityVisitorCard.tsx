@@ -1,32 +1,56 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useGlobalContext } from '../context/GlobalProvider';
-import { deleteInvite, endInvite, pauseInvite, resumeInvite } from '../lib/invite';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
 import { useTheme } from '../context/ThemeContext';
 import { lightColors, darkColors } from '../constants/ThemeColors';
 
-export default function SecurityVisitorCard({ visitor, refreshInvites }) {
+// Define the visitor prop type
+interface Visitor {
+  group_name?: string;
+  visitor_name?: string;
+  address: string;
+  status: 'checked-in' | 'active' | 'checked-out';
+  entryTime: string; // assuming entryTime is a string in ISO format
+  exit_time?: string; // assuming exit_time is optional and a string in ISO format
+  members_checked_in?: number; // assuming it's optional
+}
+
+// Define the props type for SecurityVisitorCard
+interface SecurityVisitorCardProps {
+  visitor: Visitor;
+  refreshInvites: () => void; // assuming refreshInvites is a function
+}
+
+const SecurityVisitorCard: React.FC<SecurityVisitorCardProps> = ({ visitor, refreshInvites }) => {
   const { user } = useGlobalContext();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
 
-
   const getStatusColor = () => {
     switch (visitor.status) {
-      case 'checked-in' || 'active': return colors.success;
-      case 'checked-out': return colors.error;
-      default: return colors.textSecondary;
+      case 'checked-in':
+      case 'active':
+        return colors.success;
+      case 'checked-out':
+        return colors.error;
+      default:
+        return colors.textSecondary;
     }
   };
+
   return (
     <View style={[styles.card, { backgroundColor: colors.surface }]}>
       <View style={styles.header}>
-        <Text style={[styles.name, { color: colors.text }]}>{visitor.group_name || visitor.visitor_name}</Text>
+        <Text style={[styles.name, { color: colors.text }]}>
+          {visitor.group_name || visitor.visitor_name}
+        </Text>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
-          <Text style={[styles.statusText, { color: colors.surface }]}>{visitor.status.replace('-', ' ')}</Text>
+          <Text style={[styles.statusText, { color: colors.surface }]}>
+            {visitor.status.replace('-', ' ')}
+          </Text>
         </View>
       </View>
       <View style={styles.details}>
@@ -42,14 +66,15 @@ export default function SecurityVisitorCard({ visitor, refreshInvites }) {
         )}
         {visitor.status === 'active' && (
           <>
-          <Text style={styles.detailText}>
-            <Ionicons name="time-outline" size={16} color="#666" />
-            {' '}Check-in: {moment(visitor.entryTime).format('LLL')}
-          </Text><Text style={styles.detailText}>
-          <Ionicons name="people-outline" size={16} color="#666" />
-          {' '}Number of Visitors: {visitor.members_checked_in}
-        </Text>
-        </>
+            <Text style={styles.detailText}>
+              <Ionicons name="time-outline" size={16} color="#666" />
+              {' '}Check-in: {moment(visitor.entryTime).format('LLL')}
+            </Text>
+            <Text style={styles.detailText}>
+              <Ionicons name="people-outline" size={16} color="#666" />
+              {' '}Number of Visitors: {visitor.members_checked_in}
+            </Text>
+          </>
         )}
         {visitor.status === 'checked-out' && (
           <Text style={styles.detailText}>
@@ -61,8 +86,7 @@ export default function SecurityVisitorCard({ visitor, refreshInvites }) {
       {loading && <ActivityIndicator style={styles.loading} size="large" color={colors.primary} />}
     </View>
   );
-}
-
+};
 
 const styles = StyleSheet.create({
   card: {
@@ -130,3 +154,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+export default SecurityVisitorCard;

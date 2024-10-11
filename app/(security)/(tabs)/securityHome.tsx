@@ -7,22 +7,30 @@ import { fetchAllInvites } from '../../../lib/invite';
 import { useTheme } from '../../../context/ThemeContext';
 import { lightColors, darkColors } from '../../../constants/ThemeColors';
 
-const SecurityHomeScreen = () => {
-  const [invites, setInvites] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+interface Invite {
+  id: string;
+  visitor_name: string;
+  resident_name: string;
+  status: string;
+  end_date_time: string;
+  members_checked_in?: number;
+}
+
+const SecurityHomeScreen: React.FC = () => {
+  const [invites, setInvites] = useState<Invite[]>([]);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
-
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchAllInvites();
-      const sortedData = data.sort((a, b) => new Date(b.end_date_time) - new Date(a.end_date_time));
+      const data: Invite[] = await fetchAllInvites();
+      const sortedData = data.sort((a, b) => new Date(b.end_date_time).getTime() - new Date(a.end_date_time).getTime());
       const activeInvites = sortedData.filter(invite => ['checked-in', 'active', 'paused'].includes(invite.status));
       // console.log("Active invites:", activeInvites);
       setInvites(activeInvites);
@@ -44,8 +52,13 @@ const SecurityHomeScreen = () => {
     setRefreshing(false);
   }, [fetchData]);
 
+  interface QuickActionButtonProps {
+    icon: keyof typeof Ionicons.glyphMap;
+    label: string;
+    onPress: () => void;
+  }
 
-  const QuickActionButton = ({ icon, label, onPress }) => (
+  const QuickActionButton: React.FC<QuickActionButtonProps> = ({ icon, label, onPress }) => (
     <TouchableOpacity style={[styles.quickAction, { backgroundColor: colors.surface }]} onPress={onPress}>
       <View style={[styles.quickActionIcon, { backgroundColor: colors.primary }]}>
         <Ionicons name={icon} size={24} color={colors.surface} />
@@ -54,13 +67,13 @@ const SecurityHomeScreen = () => {
     </TouchableOpacity>
   );
 
-  const renderInviteItem = ({ item }) => (
+  const renderInviteItem = ({ item }: { item: Invite }) => (
     <View style={[styles.inviteItem, { backgroundColor: colors.surface }]}>
       <View style={styles.inviteInfo}>
         <Text style={[styles.inviteName, { color: colors.primary }]}>{item.visitor_name}</Text>
         <Text style={[styles.inviteDetails, { color: colors.textSecondary }]}>Visiting: {item.resident_name}</Text>
         <Text style={[styles.inviteDetails, { color: colors.textSecondary }]}>Status: {item.status}</Text>
-        {(item.status === 'checked-in' && item.status === 'active') && (
+        {(item.status === 'checked-in' || item.status === 'active') && (
           <Text style={[styles.inviteDetails, { color: colors.textSecondary }]}>
             Number of Visitors : {item.members_checked_in}
           </Text>

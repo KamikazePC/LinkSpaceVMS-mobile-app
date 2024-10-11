@@ -9,44 +9,54 @@ import { darkColors, lightColors } from '../../../constants/ThemeColors';
 import CustomAlert from '../../../components/CustomAlert';
 import OTPDisplay from '../../../components/OTPDisplay';
 
+interface InviteData {
+  visitor_name: string;
+  visitor_phone: string;
+  otp: string;
+  date: string;
+  end_date_time: string;
+}
 
-const UtilityInviteDetails = () => {
+interface AlertConfig {
+  visible: boolean;
+  type: 'success' | 'error' | '';
+  message: string;
+}
+
+const UtilityInviteDetails: React.FC = () => {
   const { user } = useGlobalContext();
   const { invite } = useLocalSearchParams();
-  const [inviteData, setInviteData] = useState(null);
+  const [inviteData, setInviteData] = useState<InviteData | null>(null);
   const router = useRouter();
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
-  const [alertConfig, setAlertConfig] = useState({ visible: false, type: '', message: '' });
-  const [isSharing, setIsSharing] = useState(false);
-
-  
+  const [alertConfig, setAlertConfig] = useState<AlertConfig>({ visible: false, type: '', message: '' });
+  const [isSharing, setIsSharing] = useState<boolean>(false);
 
   useEffect(() => {
     try {
-      const parsedInvite = JSON.parse(invite);
+      const parsedInvite: InviteData = JSON.parse(invite as string);
       setInviteData(parsedInvite);
-      // console.log('Parsed invite data:', parsedInvite);
     } catch (error) {
       console.error('Error parsing invite data:', error, 'Received data:', invite);
       setAlertConfig({
         visible: true,
         type: 'error',
-        message: 'Error loading invite data'
+        message: 'Error loading invite data',
       });
     }
   }, [invite]);
 
-  const handleShareOTP = async () => {
+  const handleShareOTP = async (): Promise<void> => {
     setIsSharing(true);
     try {
       await Share.share({
         message: `
-Hi ${inviteData.visitor_name},
+Hi ${inviteData?.visitor_name},
 
-Your one-time code for utility access is ${inviteData.otp}
+Your one-time code for utility access is ${inviteData?.otp}
 
-Date: ${moment(inviteData.end_date_time).format('LLL')}
+Date: ${moment(inviteData?.end_date_time).format('LLL')}
 Powered by LinkSpace Ltd
         `,
       });
@@ -54,7 +64,7 @@ Powered by LinkSpace Ltd
       setAlertConfig({
         visible: true,
         type: 'error',
-        message: 'Failed to share OTP'
+        message: 'Failed to share OTP',
       });
     } finally {
       setIsSharing(false);
@@ -69,44 +79,40 @@ Powered by LinkSpace Ltd
     );
   }
 
-  const handleCopyOTP = () => {
+  const handleCopyOTP = (): void => {
     setAlertConfig({
       visible: true,
       type: 'success',
-      message: 'OTP copied to clipboard'
+      message: 'OTP copied to clipboard',
     });
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-    <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
-    <ScrollView contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Utility Invite Details</Text>
-        <View style={styles.placeholder} />
-      </View>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Utility Invite Details</Text>
+          <View style={styles.placeholder} />
+        </View>
 
-      <View style={[styles.card, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.cardTitle, { color: colors.text }]}>Visitor Information</Text>
-        <Text style={[styles.infoText, { color: colors.textSecondary }]}>Name: {inviteData?.visitor_name || 'N/A'}</Text>
-        <Text style={[styles.infoText, { color: colors.textSecondary }]}>Phone: {inviteData?.visitor_phone || 'N/A'}</Text>
-        <Text style={[styles.infoText, { color: colors.textSecondary }]}>Date: {moment(inviteData.date).format('LLL')}</Text>
-      </View>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Visitor Information</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>Name: {inviteData.visitor_name || 'N/A'}</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>Phone: {inviteData.visitor_phone || 'N/A'}</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>Date: {moment(inviteData.date).format('LLL')}</Text>
+        </View>
 
-      <View style={[styles.card, { backgroundColor: colors.surface }]}>
-       <Text style={[styles.cardTitle, { color: colors.text }]}>One Time Pin</Text>
-          <OTPDisplay 
-            otp={inviteData.otp} 
-            colors={colors} 
-            onCopy={handleCopyOTP}
-          />
-        <TouchableOpacity 
-           style={[styles.shareButton, { backgroundColor: colors.primary }, isSharing && styles.disabledButton]} 
-           onPress={handleShareOTP}
-           disabled={isSharing}
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>One Time Pin</Text>
+          <OTPDisplay otp={inviteData.otp} colors={colors} onCopy={handleCopyOTP} />
+          <TouchableOpacity
+            style={[styles.shareButton, { backgroundColor: colors.primary }, isSharing && styles.disabledButton]}
+            onPress={handleShareOTP}
+            disabled={isSharing}
           >
             {isSharing ? (
               <ActivityIndicator color={colors.surface} />
@@ -116,21 +122,21 @@ Powered by LinkSpace Ltd
                 <Text style={[styles.buttonText, styles.buttonLabel, { color: colors.surface }]}>Share OTP</Text>
               </>
             )}
-        </TouchableOpacity>
-      </View>
+          </TouchableOpacity>
+        </View>
 
-      <Text style={[styles.footer, { color: colors.textSecondary }]}>
-        You have granted access to the utility visitor. Share the OTP for entry.
-      </Text>
-    </ScrollView>
-    <CustomAlert
+        <Text style={[styles.footer, { color: colors.textSecondary }]}>
+          You have granted access to the utility visitor. Share the OTP for entry.
+        </Text>
+      </ScrollView>
+      <CustomAlert
         visible={alertConfig.visible}
         type={alertConfig.type}
         message={alertConfig.message}
         onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
       />
-  </SafeAreaView>
-);
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({

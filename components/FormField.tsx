@@ -1,9 +1,19 @@
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import React, { useState } from 'react';
 import icons from '../constants/icons';
 
-export default function FormField({ title, value, placeholder, handleChangeText, otherStyles, ...props }) {
-  const [showPassword, setShowPassword] = useState(false);
+// Define the props type for the FormField component
+interface FormFieldProps {
+  title: string | React.ReactNode; // title can be a string or any React node
+  value: string;
+  placeholder?: string; // placeholder is optional
+  handleChangeText: (text: string) => void; // function to handle text changes
+  otherStyles?: ViewStyle; // additional styles for the container
+  [key: string]: any; // allows additional props
+}
+
+const FormField: React.FC<FormFieldProps> = ({ title, value, placeholder, handleChangeText, otherStyles, ...props }) => {
+  const [showPassword, setShowPassword] = useState<boolean>(false); // specify type for useState
 
   const displayTitle = typeof title === 'string' ? title : JSON.stringify(title);
 
@@ -71,3 +81,5 @@ const styles = StyleSheet.create({
     tintColor: '#666',
   },
 });
+
+export default FormField;

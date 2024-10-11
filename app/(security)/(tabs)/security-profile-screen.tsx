@@ -8,7 +8,7 @@ import { useGlobalContext } from '../../../context/GlobalProvider';
 import { useTheme } from '../../../context/ThemeContext';
 import { lightColors, darkColors } from '../../../constants/ThemeColors';
 
-const SecurityProfileScreen = () => {
+const SecurityProfileScreen: React.FC = () => {
   const router = useRouter();
   const { user } = useGlobalContext();
   const { isDarkMode } = useTheme();
@@ -36,7 +36,6 @@ const SecurityProfileScreen = () => {
     );
   };
 
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
@@ -47,7 +46,10 @@ const SecurityProfileScreen = () => {
       <View style={[styles.infoSection, { backgroundColor: colors.surface }]}>
         <InfoItem icon="mail" label="Email" value={user.email} colors={colors} />
       </View>
-      <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.secondary }]} onPress={handleLogout}>
+      <TouchableOpacity
+        style={[styles.logoutButton, { backgroundColor: colors.secondary }]}
+        onPress={handleLogout}
+      >
         <Ionicons name="log-out-outline" size={24} color={colors.surface} />
         <Text style={[styles.logoutButtonText, { color: colors.surface }]}>Log Out</Text>
       </TouchableOpacity>
@@ -55,7 +57,14 @@ const SecurityProfileScreen = () => {
   );
 };
 
-const InfoItem = ({ icon, label, value, colors }) => (
+interface InfoItemProps {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+  colors: typeof lightColors | typeof darkColors;
+}
+
+const InfoItem: React.FC<InfoItemProps> = ({ icon, label, value, colors }) => (
   <View style={styles.infoItem}>
     <Ionicons name={icon} size={24} color={colors.primary} style={styles.infoIcon} />
     <View>

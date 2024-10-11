@@ -7,9 +7,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { lightColors, darkColors } from '../../constants/ThemeColors';
 
-const InviteDetailScreen = () => {
-  const { invite, actionType } = useLocalSearchParams();
-  const [inviteData, setInviteData] = useState(null);
+// Define types for invite data
+interface InviteData {
+  visitor_name: string;
+  visitor_phone?: string;
+  resident_name: string;
+  address: string;
+  status: string;
+  end_date_time: string;
+  group_name?: string;
+  members_checked_in?: number ;
+  entry_time?: string;
+  exit_time?: string;
+}
+
+const InviteDetailScreen: React.FC = () => {
+  const { invite, actionType } = useLocalSearchParams<{ invite: string; actionType: string }>();
+  const [inviteData, setInviteData] = useState<InviteData | null>(null);
   const router = useRouter();
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
@@ -51,7 +65,7 @@ const InviteDetailScreen = () => {
     );
   };
 
-  const DetailItem = ({ icon, label, value }) => (
+  const DetailItem: React.FC<{ icon: keyof typeof Ionicons.glyphMap; label: string; value: string | number | undefined }> = ({ icon, label, value }) => (
     <View style={styles.detailItem}>
       <Ionicons name={icon} size={24} color="#2E5A88" style={styles.detailIcon} />
       <View>
@@ -63,14 +77,14 @@ const InviteDetailScreen = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-    <ScrollView contentContainerStyle={styles.scrollContent}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={24} color={colors.primary} />
-      </TouchableOpacity>
-      <Text style={[styles.title, { color: colors.text }]}>Invite Details</Text>
-      <View style={[styles.card, { backgroundColor: colors.surface }]}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color={colors.primary} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: colors.text }]}>Invite Details</Text>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <DetailItem icon="person" label="Visitor Name" value={inviteData.visitor_name} />
-          {inviteData.visitor_Phone && (
+          {inviteData.visitor_phone && (
             <DetailItem icon="call" label="Phone Number" value={inviteData.visitor_phone} />
           )}
           <DetailItem icon="home" label="Visiting" value={inviteData.resident_name} />
@@ -82,21 +96,20 @@ const InviteDetailScreen = () => {
             value={moment(inviteData.end_date_time).format('LLL')} 
           />
           {inviteData.group_name && (
-            
             <DetailItem icon="people" label="Number of Visitors Checked In" value={inviteData.members_checked_in} />
           )}
           {inviteData.status === 'checked-in' && inviteData.entry_time && (
             <DetailItem 
               icon="enter" 
               label="Check-in Time" 
-              value={moment(inviteData.entryTime).format('LLL')} 
+              value={moment(inviteData.entry_time).format('LLL')} 
             />
           )}
           {inviteData.status === 'checked-out' && inviteData.exit_time && (
             <DetailItem 
               icon="exit" 
               label="Check-out Time" 
-              value={moment(inviteData.exitTime).format('LLL')} 
+              value={moment(inviteData.exit_time).format('LLL')} 
             />
           )}
         </View>

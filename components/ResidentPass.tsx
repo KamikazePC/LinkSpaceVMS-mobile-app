@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { useGlobalContext } from '../context/GlobalProvider';
-;
 
-export default function ResidentPass() {
+// Define the user data type
+interface UserData {
+  username: string;
+  id: string;
+  address: string;
+}
+
+// Define the component
+const ResidentPass: React.FC = () => {
   const { user } = useGlobalContext();
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   useEffect(() => {
     // Fetch user data or use context data
@@ -20,6 +27,7 @@ export default function ResidentPass() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        {/* Uncomment the following Image if you want to display the logo */}
         {/* <Image
           style={styles.logo}
           source={{ uri: 'https://linkspace.africa/wp-content/uploads/2023/05/logo.png' }}
@@ -47,7 +55,7 @@ export default function ResidentPass() {
       <Text style={styles.providerText}>Provider: LinkSpace Ltd</Text>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -99,3 +107,5 @@ const styles = StyleSheet.create({
     color: '#555',
   },
 });
+
+export default ResidentPass;

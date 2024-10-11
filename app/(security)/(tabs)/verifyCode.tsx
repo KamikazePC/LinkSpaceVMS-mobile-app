@@ -1,21 +1,27 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { RouteParamInput, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../../context/ThemeContext';
 import { lightColors, darkColors } from '../../../constants/ThemeColors';
 
-const VerifyCodeScreen = () => {
+const VerifyCodeScreen: React.FC = () => {
   const router = useRouter();
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
 
-  const handleNavigate = (path, params) => {
-    router.push({ pathname: path, params });
+  const handleNavigate = (path: string, params?: RouteParamInput<string>  ) => {
+    router.push({ pathname: path,  params: params || {}  });
   };
 
-  const ActionButton = ({ icon, label, onPress }) => (
+  type ActionButtonProps = {
+    icon: keyof typeof Ionicons.glyphMap;
+    label: string;
+    onPress: () => void;
+  };
+
+  const ActionButton: React.FC<ActionButtonProps> = ({ icon, label, onPress }) => (
     <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={onPress}>
       <Ionicons name={icon} size={24} color={colors.surface} />
       <Text style={[styles.buttonText, { color: colors.surface }]}>{label}</Text>
@@ -31,12 +37,12 @@ const VerifyCodeScreen = () => {
           <ActionButton 
             icon="key-outline" 
             label="Input OTP" 
-            onPress={() => handleNavigate('inputOTP', { actionType: 'checkin' })}
+            onPress={() => handleNavigate('inputOTP', { actionType: 'checkin' })} 
           />
           <ActionButton 
             icon="qr-code-outline" 
             label="Scan QR Code" 
-            onPress={() => handleNavigate('ScanQRScreen', { actionType: 'checkin' })}
+            onPress={() => handleNavigate('ScanQRScreen', { actionType: 'checkin' })} 
           />
         </View>
         <View style={[styles.panel, { backgroundColor: colors.surface }]}>
@@ -44,12 +50,12 @@ const VerifyCodeScreen = () => {
           <ActionButton 
             icon="key-outline" 
             label="Input OTP" 
-            onPress={() => handleNavigate('inputOTP', { actionType: 'checkout' })}
+            onPress={() => handleNavigate('inputOTP', { actionType: 'checkout' })} 
           />
           <ActionButton 
             icon="qr-code-outline" 
             label="Scan QR Code" 
-            onPress={() => handleNavigate('ScanQRScreen', { actionType: 'checkout' })}
+            onPress={() => handleNavigate('ScanQRScreen', { actionType: 'checkout' })} 
           />
         </View>
       </View>
