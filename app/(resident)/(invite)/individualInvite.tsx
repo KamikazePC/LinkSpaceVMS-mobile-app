@@ -88,7 +88,7 @@ const IndividualInviteScreen: React.FC = () => {
     if (selected) {
       setStartTime(selected);
       if (selected <= endTime) {
-        setEndTime(new Date(selected.getTime() ));
+        setEndTime(new Date(selected.getTime() + 60 * 60 * 1000));
       }
     }
   };
@@ -96,7 +96,7 @@ const IndividualInviteScreen: React.FC = () => {
   const handleEndTimeChange = (event: any, selected?: Date | undefined) => {
     setShowEndTimePicker(false);
     if (selected && selected > startTime) {
-      setEndTime(new Date(selected.getTime() ));
+      setEndTime(new Date(selected.getTime() + 60 * 60 * 1000));
     }
   };
 
@@ -133,13 +133,13 @@ const IndividualInviteScreen: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const timezone = 'Africa/Lagos';
-      const date = moment.tz(selectedDate, timezone).format('YYYY-MM-DD');
-      const formattedStartTime = moment.tz(startTime,  timezone);
-      const formattedEndTime = moment.tz(endTime, timezone);
+     
+      const date = moment(selectedDate).format('YYYY-MM-DD');
+      const formattedStartTime = moment(startTime).format('HH:mm');
+      const formattedEndTime = moment(endTime).format('HH:mm');
 
-      const startDateTime = formattedStartTime;
-      const endDateTime = formattedEndTime;
+      const startDateTime = moment(`${date} ${formattedStartTime}`);
+      const endDateTime = moment(`${date} ${formattedEndTime}`);
       
       console.log('Before invite creation');
       const newInvite = await createInvite(

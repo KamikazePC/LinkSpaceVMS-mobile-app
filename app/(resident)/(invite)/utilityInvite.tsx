@@ -165,7 +165,7 @@ export default function ImprovedUtilityInvite() {
   const handleAlertClose = () => {
     setAlertConfig({ ...alertConfig, visible: false });
     if (alertConfig.type === 'success' && createdInvite) {
-      console.log('Navigating to utilityInviteDetails...');
+      // console.log('Navigating to utilityInviteDetails...');
       router.push({
         pathname: "/utilityInviteDetails",
         params: { invite: JSON.stringify(createdInvite) }
