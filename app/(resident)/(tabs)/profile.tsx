@@ -244,7 +244,7 @@ const ProfileScreen: React.FC = () => {
         </TouchableOpacity>
       </ScrollView>
 
-      <Animated.View
+      {/* <Animated.View
         style={[
           styles.residentPassContainer,
           {
@@ -256,9 +256,10 @@ const ProfileScreen: React.FC = () => {
       >
         <View style={[styles.residentPassHandle, { backgroundColor: colors.border }]} />
         <Text style={[styles.residentPassTitle, { color: colors.text }]}>Resident Pass</Text>
+        
         <View style={styles.qrCodeContainer}>
           <QRCode
-            value={JSON.stringify({ username: profile.username, household_Id: profile.address })}
+            value={JSON.stringify({ username: profile.username, address: profile.address })}
             size={200}
             color={colors.text}
             backgroundColor={colors.surface}
@@ -267,7 +268,7 @@ const ProfileScreen: React.FC = () => {
         <Text style={[styles.residentPassText, { color: colors.textSecondary }]}>
           This is your personal resident pass. Do not share it with others.
         </Text>
-      </Animated.View>
+      </Animated.View> */}
       <CustomAlert
         visible={alertConfig.visible}
         type={alertConfig.type}
