@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator, KeyboardTypeOptions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { signIn } from '../../lib/auth';
@@ -27,7 +27,7 @@ interface AlertConfig {
   message: string;
 }
 
-const keyboardTypeValue = 'email-address';
+// const keyboardTypeValue = 'email-address';
 
 const SignIn: React.FC = () => {
   const [form, setForm] = useState<FormState>({ email: '', password: '' });
@@ -119,7 +119,7 @@ const SignIn: React.FC = () => {
     setAlertConfig({ ...alertConfig, visible: false });
   };
 
-  const renderInput = (key: keyof FormState, placeholder: string, icon: IconName, keyboardType = 'default', secureTextEntry = false) => {
+  const renderInput = (key: keyof FormState, placeholder: string, icon: IconName, keyboardType : KeyboardTypeOptions = 'default', secureTextEntry = false) => {
     return (
       <View style={styles.inputContainer}>
       <Ionicons name={icon} size={24} color={colors.primary} style={styles.inputIcon} />
@@ -132,7 +132,7 @@ const SignIn: React.FC = () => {
         }}
         placeholder={placeholder}
         placeholderTextColor={colors.textSecondary}
-        keyboardType={keyboardTypeValue}
+        keyboardType={key === 'email' ? 'email-address' : keyboardType}
         secureTextEntry={secureTextEntry && !showPassword}
         autoCapitalize={key === 'email' ? 'none' : 'sentences'}
         editable={!isSubmitting}

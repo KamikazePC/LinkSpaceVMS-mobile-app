@@ -11,6 +11,7 @@ import { useGlobalContext } from '../../../context/GlobalProvider';
 import { useTheme } from '../../../context/ThemeContext';
 import { lightColors, darkColors } from '../../../constants/ThemeColors';
 import { ListRenderItem, ListRenderItemInfo } from 'react-native';
+import { supabase } from '@context/lib/supabase';
 
 
 interface Invite {
@@ -19,7 +20,7 @@ interface Invite {
   otp: string;
   visitor_phone?: string;
   created_at: string;
-  status: string;
+  status: 'pending' | 'checked-in' | 'paused' | 'active' | 'checked-out' | 'completed';
   // Add other properties as needed
 }
 
@@ -59,15 +60,39 @@ const VisitorLog: React.FC = () => {
 
   useEffect(() => {
     fetchAndSetInvites();
-    const intervalId = setInterval(fetchAndSetInvites,  30 * 60 * 1000); // Fetch every 30 min
-    
+
+    const groupInviteSubscription = supabase
+      .channel('public:group_invites')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'group_invites' }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          fetchAndSetInvites(); // Fetch invites on any new or updated invite
+        }
+      })
+      .subscribe();
+    const oneTimeInviteSubscription = supabase
+      .channel('public:individual_one_time_invite')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'individual_one_time_invite' }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          fetchAndSetInvites(); // Fetch invites on any new or updated invite
+        }
+      })
+      .subscribe();
+    const recurringInviteSubscription = supabase
+      .channel('public:individual_recurring_invites')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'individual_recurring_invites' }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          fetchAndSetInvites(); // Fetch invites on any new or updated invite
+        }
+      })
+      .subscribe();
+
     // Schedule cleanup of expired invites
     scheduleExpiredInviteCleanup(30); // Run every 30 minutes
 
     return () => {
-      clearInterval(intervalId);
-      // Note: We can't clear the interval set by scheduleExpiredInviteCleanup
-      // as it's meant to run continuously in the background
+      supabase.removeChannel(groupInviteSubscription);
+      supabase.removeChannel(oneTimeInviteSubscription);
+      supabase.removeChannel(recurringInviteSubscription);
     };
   }, [fetchAndSetInvites]);
 

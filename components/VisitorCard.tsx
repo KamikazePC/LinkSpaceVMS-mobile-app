@@ -9,15 +9,27 @@ import CustomAlert from './CustomAlert';
 
 interface Visitor {
   id: string;
+  created_at: string;
+  otp: string;
   visitor_name: string;
-  visitor_phone: string;
+  visitor_phone?: string;
   group_name?: string;
   status: 'pending' | 'checked-in' | 'paused' | 'active' | 'checked-out' | 'completed';
 }
 
+interface Invite {
+  id: string;
+  visitor_name: string;
+  otp: string;
+  visitor_phone?: string;
+  created_at: string;
+  status: 'pending' | 'checked-in' | 'paused' | 'active' | 'checked-out' | 'completed';
+  // Add other properties as needed
+}
+
 interface VisitorCardProps {
   visitor: Visitor;
-  onPress: (visitor: Visitor) => void;
+  onPress: (visitor: Visitor | Invite) => void;
   refreshInvites: () => void;
 }
 

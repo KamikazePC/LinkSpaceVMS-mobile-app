@@ -42,14 +42,18 @@ export default function ImprovedUtilityInvite() {
 
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
-  const [startTime, setStartTime] = useState<Date>(new Date());
-  const [endTime, setEndTime] = useState<Date>(new Date(new Date().setHours(new Date().getHours() + 1)));
+  const [startTime, setStartTime] = useState<Date>(moment().add(1, 'minute').toDate());
+  const [endTime, setEndTime] = useState<Date>(moment().add(1, 'hour').toDate());
 
   const [showStartDatePicker, setShowStartDatePicker] = useState<boolean>(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState<boolean>(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState<boolean>(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState<boolean>(false);
 
+  const nigerianStartTime = moment(startTime).utcOffset('+0100').format('YYYY-MM-DD HH:mm:ss');
+  const nigerianEndTime = moment(endTime).utcOffset('+0100').format('YYYY-MM-DD HH:mm:ss');
+  const nigerianTime = moment().utcOffset('+0100').format('YYYY-MM-DD HH:mm:ss');
+  
   const handleStartDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || startDate;
     setShowStartDatePicker(false);
@@ -111,24 +115,25 @@ export default function ImprovedUtilityInvite() {
     }
 
     // Validate that date is not in the past
-    if (startTime < new Date()) {
-      setAlertConfig({ visible: true, type: 'error', message: 'Please select a future time.' });
+    if (moment(startDate).isSame(new Date(), 'day')) {
+      // If the selected date is today, compare the times
+      if (startTime < new Date()) {
+        setAlertConfig({ visible: true, type: 'error', message: 'Please select a future time.' });
+        return;
+      }
+    } else if (moment(startDate).isBefore(new Date(), 'day')) {
+      // If the selected date is before today, it's also invalid
+      setAlertConfig({ visible: true, type: 'error', message: 'Please select a future date.' });
       return;
     }
-
     
 
     setIsSubmitting(true);
 
     try {
-      const startDateTime = moment(startDate)
-      .set('hour', startTime.getHours())
-      .set('minute', startTime.getMinutes());
-
-      const endDateTime = moment(endDate)
-      .set('hour', endTime.getHours())
-      .set('minute', endTime.getMinutes());
-
+      const startDateTime = moment(` ${nigerianStartTime}`);
+      const endDateTime = moment(`${nigerianEndTime}`);
+      
       const newInvite = await createInvite(
         user.username,
         visitorName,

@@ -32,6 +32,7 @@ interface Invite {
   [key: string]: any;
 }
 
+
 const IndividualInviteScreen: React.FC = () => {
   const { user, fetchAndSetInvites } = useGlobalContext();
   const router = useRouter();
@@ -51,16 +52,19 @@ const IndividualInviteScreen: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isInviteCreated, setIsInviteCreated] = useState<boolean>(false);
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [startTime, setStartTime] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(moment().toDate());
+  const [startTime, setStartTime] = useState<Date>(moment().add(1, 'minute').toDate());
   const [endTime, setEndTime] = useState<Date>(
-    new Date(new Date().setHours(new Date().getHours() + 1))
+    moment().add(1, 'hour').toDate()
   );
 
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState<boolean>(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState<boolean>(false);
 
+  const nigerianStartTime = moment(startTime).utcOffset('+0100').format('YYYY-MM-DD HH:mm:ss');
+  const nigerianEndTime = moment(endTime).utcOffset('+0100').format('YYYY-MM-DD HH:mm:ss');
+  const nigerianTime = moment().utcOffset('+0100').format('YYYY-MM-DD HH:mm:ss');
 
   useEffect(() => {
     // console.log('cardVisitorName', cardVisitorName);
@@ -73,6 +77,8 @@ const IndividualInviteScreen: React.FC = () => {
     if (cardVisitorPhone) {
       setVisitorPhone(cardVisitorPhone as string);
     }
+
+    console.log(nigerianStartTime)
   }, [cardVisitorName, cardVisitorPhone]);
 
   const handleDateChange = (event: any, selected?: Date | undefined) => {
@@ -80,6 +86,7 @@ const IndividualInviteScreen: React.FC = () => {
     setShowDatePicker(false);
     if (currentDate >= new Date()) {
       setSelectedDate(currentDate);
+
     }
   };
 
@@ -88,7 +95,8 @@ const IndividualInviteScreen: React.FC = () => {
     if (selected) {
       setStartTime(selected);
       if (selected <= endTime) {
-        setEndTime(new Date(selected.getTime() + 60 * 60 * 1000));
+        setEndTime(new Date(selected.getTime()));
+        console.log(startTime);
       }
     }
   };
@@ -96,7 +104,8 @@ const IndividualInviteScreen: React.FC = () => {
   const handleEndTimeChange = (event: any, selected?: Date | undefined) => {
     setShowEndTimePicker(false);
     if (selected && selected > startTime) {
-      setEndTime(new Date(selected.getTime() + 60 * 60 * 1000));
+      setEndTime(new Date(selected.getTime()));
+      console.log(endTime);
     }
   };
 
@@ -125,21 +134,27 @@ const IndividualInviteScreen: React.FC = () => {
     }
 
     //Validate that start time is not in the past
-    if (startTime < new Date()) {
-      setAlertConfig({ visible: true, type: 'error', message: 'Please select a future time.' });
+    if (moment(selectedDate).isSame(new Date(), 'day')) {
+      // If the selected date is today, compare the times
+      if (startTime < new Date()) {
+        setAlertConfig({ visible: true, type: 'error', message: 'Please select a future time.' });
+        return;
+      }
+    } else if (moment(selectedDate).isBefore(new Date(), 'day')) {
+      // If the selected date is before today, it's also invalid
+      setAlertConfig({ visible: true, type: 'error', message: 'Please select a future date.' });
       return;
     }
-
     setIsSubmitting(true);
 
     try {
      
-      const date = moment(selectedDate).format('YYYY-MM-DD');
-      const formattedStartTime = moment(startTime).format('HH:mm');
-      const formattedEndTime = moment(endTime).format('HH:mm');
+      // const date = nigerianTime;
+      // const formattedStartTime = moment(startTime).format('HH:mm');
+      // const formattedEndTime = moment(endTime).format('HH:mm');
 
-      const startDateTime = moment(`${date} ${formattedStartTime}`);
-      const endDateTime = moment(`${date} ${formattedEndTime}`);
+      const startDateTime = moment(` ${nigerianStartTime}`);
+      const endDateTime = moment(`${nigerianEndTime}`);
       
       console.log('Before invite creation');
       const newInvite = await createInvite(

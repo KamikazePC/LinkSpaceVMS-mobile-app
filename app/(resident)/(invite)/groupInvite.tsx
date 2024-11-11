@@ -41,10 +41,14 @@ const GroupInvite: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [isInviteCreated, setIsInviteCreated] = useState<boolean>(false);
-  const [startTime, setStartTime] = useState<Date>(new Date());
-  const [endTime, setEndTime] = useState<Date>(new Date(new Date().setHours(new Date().getHours() + 1)));
+  const [startTime, setStartTime] = useState<Date>(moment().add(1, 'minute').toDate());
+  const [endTime, setEndTime] = useState<Date>(moment().add(1, 'hour').toDate());
   const [showStartTimePicker, setShowStartTimePicker] = useState<boolean>(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState<boolean>(false);
+
+  const nigerianStartTime = moment(startTime).utcOffset('+0100').format('YYYY-MM-DD HH:mm:ss');
+  const nigerianEndTime = moment(endTime).utcOffset('+0100').format('YYYY-MM-DD HH:mm:ss');
+  const nigerianTime = moment().utcOffset('+0100').format('YYYY-MM-DD HH:mm:ss');
 
   const handleDateChange = (event: any, selected: Date | undefined) => {
     const currentDate = selected || selectedDate;
@@ -90,17 +94,24 @@ const GroupInvite: React.FC = () => {
     }
 
     //Validate that date is not in the past
-    if (startTime < new Date()) {
-      setAlertConfig({ visible: true, type: 'error', message: 'Please select a future time.' });
+    if (moment(selectedDate).isSame(new Date(), 'day')) {
+      // If the selected date is today, compare the times
+      if (startTime < new Date()) {
+        setAlertConfig({ visible: true, type: 'error', message: 'Please select a future time.' });
+        return;
+      }
+    } else if (moment(selectedDate).isBefore(new Date(), 'day')) {
+      // If the selected date is before today, it's also invalid
+      setAlertConfig({ visible: true, type: 'error', message: 'Please select a future date.' });
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const date = moment(selectedDate).format('YYYY-MM-DD');
-      const formattedStartTime = moment(startTime).format('HH:mm');
-      const formattedEndTime = moment(endTime).format('HH:mm');
+      const date = nigerianTime;
+      const formattedStartTime = nigerianStartTime;
+      const formattedEndTime = nigerianEndTime;
 
       const groupInvite = await createGroupInvite(
         user.username,

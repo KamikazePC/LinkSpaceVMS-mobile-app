@@ -91,7 +91,6 @@ const HomeScreen: React.FC = () => {
   const { user } = useGlobalContext();
   const [invites, setInvites] = useState<Invite[]>([]);
   const [upcomingVisits, setUpcomingVisits] = useState<Invite[]>([]);
-  const [collapsed, setCollapsed] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const { isDarkMode, themePreference, setTheme } = useTheme();
@@ -99,11 +98,11 @@ const HomeScreen: React.FC = () => {
   const router = useRouter();
   const [alertConfig, setAlertConfig] = useState<AlertConfig>({ visible: false, type: '', message: '' });
 
-  const cycleTheme = () => {
-    const themes = ['system', 'light', 'dark'];
-    const nextIndex = (themes.indexOf(themePreference) + 1) % themes.length;
-    setTheme(themes[nextIndex]);
-  };
+  // const cycleTheme = () => {
+  //   const themes = ['system', 'light', 'dark'];
+  //   const nextIndex = (themes.indexOf(themePreference) + 1) % themes.length;
+  //   setTheme(themes[nextIndex]);
+  // };
 
   const fetchData = useCallback(async () => {
     if (user && user.address) {
@@ -132,9 +131,49 @@ const HomeScreen: React.FC = () => {
   
   useEffect(() => {
     fetchData();
-    const intervalId = setInterval(fetchData,  5 * 60 * 1000); // Refresh every 5 minutes
-    return () => clearInterval(intervalId);
+
+    const notificationSubscription = supabase
+      .channel('public:notifications')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          fetchData(); // Refresh data when there's a new or updated notification
+        }
+      })
+      .subscribe();
+
+    const groupInviteSubscription = supabase
+      .channel('public:group_invites')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'group_invites' }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          fetchData(); // Refresh data when there's a new or updated invite
+        }
+      })
+      .subscribe();
+    const oneTimeInviteSubscription = supabase
+      .channel('public:individual_one_time_invite')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'individual_one_time_invite' }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          fetchData(); // Refresh data when there's a new or updated invite
+        }
+      })
+      .subscribe();
+    const recurringInviteSubscription = supabase
+      .channel('public:individual_recurring_invites')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'individual_recurring_invites' }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          fetchData(); // Refresh data when there's a new or updated invite
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(notificationSubscription);
+      supabase.removeChannel(groupInviteSubscription);
+      supabase.removeChannel(oneTimeInviteSubscription);
+      supabase.removeChannel(recurringInviteSubscription);
+    };
   }, [fetchData]);
+
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -289,7 +328,7 @@ const HomeScreen: React.FC = () => {
                   { user?.username}
                 </Text>
               </View>
-              <TouchableOpacity onPress={cycleTheme} style={styles.themeToggle}>
+              {/* <TouchableOpacity onPress={cycleTheme} style={styles.themeToggle}>
                 <Ionicons 
                   name={themePreference === 'system' ? 'phone-portrait' : (isDarkMode ? 'moon' : 'sunny')} 
                   size={24} 
@@ -298,7 +337,7 @@ const HomeScreen: React.FC = () => {
                 <Text style={[styles.themeText, { color: colors.surface }]}>
                   {themePreference.charAt(0).toUpperCase() + themePreference.slice(1)}
                 </Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
 
             <View style={styles.quickActionsContainer}>

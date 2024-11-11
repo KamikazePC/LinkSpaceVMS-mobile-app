@@ -32,7 +32,7 @@ const SignInAsSecurity: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [alertConfig, setAlertConfig] = useState<AlertConfig>({ visible: false, type: '', message: '' });
-  const { setIsLoggedIn, setUser } = useGlobalContext();
+  const { setIsLoggedIn, setSecurity } = useGlobalContext();
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
 
@@ -70,7 +70,7 @@ const SignInAsSecurity: React.FC = () => {
         throw new Error('Failed to get user information');
       }
 
-      setUser(user);
+      setSecurity(user);
       setIsLoggedIn(true);
 
       router.replace('/(security)/(tabs)/securityHome');

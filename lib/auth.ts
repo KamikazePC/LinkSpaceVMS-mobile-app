@@ -18,10 +18,10 @@ export const createUser = async (
 ): Promise<User> => {
     try {
 
-        // Validate the address format (Number and Street Name)
-        if (!validateAddressFormat(address!)) {
-            throw new Error('Please enter the address in the format: "Number Street Name"');
-        }
+        // // Validate the address format (Number and Street Name)
+        // if (!validateAddressFormat(address!)) {
+        //     throw new Error('Please enter the address in the format: "Number Street Name"');
+        // }
 
         // Fetch the estate_id based on the registration_code
         const { data: estateData, error: estateError } = await supabase
@@ -180,28 +180,28 @@ export const signInAsSecurity  = async (email: string, password: string): Promis
             throw new Error('Failed to retrieve user document');
           }
       
-          // Import getCurrentDeviceId and addDevice here to avoid circular dependency
-          const { getCurrentDeviceId, addDevice, performPeriodicCheck } = await import('./device-manager');
+        //   // Import getCurrentDeviceId and addDevice here to avoid circular dependency
+        //   const { getCurrentDeviceId, addDevice, performPeriodicCheck } = await import('./device-manager');
 
 
-         const deviceId = await getCurrentDeviceId();
-         console.log('Current device ID:', deviceId);
+        //  const deviceId = await getCurrentDeviceId();
+        //  console.log('Current device ID:', deviceId);
 
-         try {
-            await addDevice(data.id, deviceId);
-            console.log('Device associated with user');
-          } catch (addDeviceError) {
-            console.error('Error associating device with user:', addDeviceError);
-          }
+        //  try {
+        //     await addDevice(data.id, deviceId);
+        //     console.log('Device associated with user');
+        //   } catch (addDeviceError) {
+        //     console.error('Error associating device with user:', addDeviceError);
+        //   }
 
           // Fetch the updated session to confirm changes
           const { data: session, error: sessionError } = await supabase.auth.getSession();
           if (sessionError) throw sessionError;
           console.log('Updated session:', session);
 
-          console.log('Performing periodic check...');
-          await performPeriodicCheck();
-          console.log('Periodic check completed');
+        //   console.log('Performing periodic check...');
+        //   await performPeriodicCheck();
+        //   console.log('Periodic check completed');
 
          return { user: data as User, session: session.session };
     } catch (error) {
@@ -211,26 +211,42 @@ export const signInAsSecurity  = async (email: string, password: string): Promis
 };
 
 
-export const getCurrentUser = async (): Promise<User> => {
+export const getCurrentUser = async (): Promise<{ user: User, userType: 'resident' | 'security' }> => {
     try {
-        const {data: {user}} = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if(!user) throw new Error('No user found');
+        if (!user) throw new Error('No user found');
 
-        const { data, error} = await supabase
-        .from('residents')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+        // Check 'residents' table
+        const { data: residentData } = await supabase
+            .from('residents')
+            .select('*')
+            .eq('id', user.id)
+            .single();
 
-        if(error) throw error;
+        if (residentData) {
+            return { user: residentData as User, userType: 'resident' };
+        }
 
-        return data as User
+        // Check 'security' table
+        const { data: securityData } = await supabase
+            .from('security')
+            .select('*')
+            .eq('email',  user?.email)
+            .single();
+
+        if (securityData) {
+            return { user: securityData as User, userType: 'security' };
+        }
+
+        throw new Error('User not found in residents or security');
     } catch (error) {
         console.error('Error getting current user:', error);
         throw error;
     }
-}
+};
+
+
 
 export const signInWithProvider = async (provider: OAuthProvider): Promise<AuthResponse> => {
     try {

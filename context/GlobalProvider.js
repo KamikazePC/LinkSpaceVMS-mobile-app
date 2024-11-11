@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { getCurrentUser } from "../lib/auth";
 import { fetchInvites } from "../lib/invite";
+import { router } from "expo-router";
 
 const GlobalContext = createContext();
 export const useGlobalContext = () => useContext(GlobalContext);
@@ -12,27 +13,36 @@ const GlobalProvider = ({ children }) => {
     const [filteredInvites, setFilteredInvites] = useState([]);
     const [updateTrigger, setUpdateTrigger] = useState(0);
     const [user, setUser] = useState(null);
+    const [security, setSecurity] = useState(null);
+    
 
     useEffect(() => {
         const initializeUser = async () => {
             try {
-                const currentUser = await getCurrentUser();
-                if (currentUser) {
+                const { user: currentUser, userType } = await getCurrentUser();
+                
+                if (userType === 'resident') {
+                    console.log('User is a resident');
                     setUser(currentUser);
-                    setIsLoggedIn(true);
-                } else {
+                    setSecurity(null);
+                } else if (userType === 'security') {
+                    console.log('User is security');
+                    setSecurity(currentUser);
+                    router.replace('/(security)/(tabs)/securityHome');
                     setUser(null);
-                    setIsLoggedIn(false);
                 }
+    
+                setIsLoggedIn(true);
             } catch (error) {
                 console.error('Error initializing user:', error);
                 setUser(null);
+                setSecurity(null);
                 setIsLoggedIn(false);
             } finally {
                 setIsLoading(false);
             }
         };
-
+    
         initializeUser();
     }, []);
 
@@ -63,6 +73,7 @@ const GlobalProvider = ({ children }) => {
     const signOut = useCallback(async () => {
         setIsLoggedIn(false);
         setUser(null);
+        setSecurity(null);
         setInvites([]);
         setFilteredInvites([]);
     }, []);
@@ -78,6 +89,8 @@ const GlobalProvider = ({ children }) => {
                 setIsLoggedIn,
                 user,
                 setUser,
+                security,
+                setSecurity,
                 isLoading,
                 invites,
                 setInvites,

@@ -1,32 +1,50 @@
+
+
 {
   "expo": {
-    "name": "Linkspace-Vms-mobile-app",
+    "name": "LinkSpace",
     "slug": "Linkspace-Vms-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/black-logo-mark.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      // "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "scheme": "myapp",
-    
+    "scheme": "linkspace",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.priestly.LinkspaceVmsmobileapp",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "foregroundImage": "./assets/black-logo-mark.png",
+        "backgroundColor": "#fbf8f3"
+      },
+      "package": "com.priestly.LinkspaceVmsmobileapp",
+      "runtimeVersion": "1.0.0"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      // "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "69cdcbb3-d3e8-42ab-b33e-89f339f54d58"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/69cdcbb3-d3e8-42ab-b33e-89f339f54d58",
+      "fallbackToCacheTimeout": 0,
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD"
+    }
   }
 }

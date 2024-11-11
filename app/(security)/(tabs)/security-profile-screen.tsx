@@ -10,7 +10,7 @@ import { lightColors, darkColors } from '../../../constants/ThemeColors';
 
 const SecurityProfileScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useGlobalContext();
+  const { security } = useGlobalContext();
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? darkColors : lightColors;
 
@@ -40,11 +40,11 @@ const SecurityProfileScreen: React.FC = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
       <View style={styles.profileInfo}>
-        <Text style={[styles.name, { color: colors.text }]}>{user.name}</Text>
+        <Text style={[styles.name, { color: colors.text }]}>{security.security_name}</Text>
         <Text style={[styles.role, { color: colors.textSecondary }]}>Security Personnel</Text>
       </View>
       <View style={[styles.infoSection, { backgroundColor: colors.surface }]}>
-        <InfoItem icon="mail" label="Email" value={user.email} colors={colors} />
+        <InfoItem icon="mail" label="Email" value={security.email} colors={colors} />
       </View>
       <TouchableOpacity
         style={[styles.logoutButton, { backgroundColor: colors.secondary }]}

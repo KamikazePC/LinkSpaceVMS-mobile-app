@@ -505,8 +505,7 @@ export const deleteInvite = async (id: string, invite: any) => {
 export const deleteExpiredInvites = async () => {
     try {
 
-        const timezone = 'Africa/Lagos'; // Replace with your timezone, e.g., 'America/New_York', 'Europe/London', etc.
-        const currentDate = moment.tz(timezone); 
+        const currentDate = moment()
 
 
       console.log('Starting deletion process for expired invites');

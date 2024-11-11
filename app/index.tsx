@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Redirect, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGlobalContext } from '../context/GlobalProvider';
 import { useTheme } from '../context/ThemeContext';
 import { lightColors, darkColors } from '../constants/ThemeColors';
+import { enableScreens } from 'react-native-screens';
+enableScreens();
+
+
+// Importing the logo image
+import logo from '../assets/black-logo-mark.png';
 
 // Defining the type for the error state
 type CheckError = string | null;
@@ -43,8 +49,10 @@ export default function LinkSpaceVMS() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <StatusBar style={isDarkMode ? "light" : "dark"} />
       <View style={styles.container}>
-        <Text style={[styles.title, { color: colors.primary }]}>LinkSpaceVMS</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Visitor Management System</Text>
+         {/* Displaying the logo */}
+        <Image source={logo} style={styles.logo} />
+        <Text style={[styles.title, { color: colors.primary }]}>LinkSpace</Text>
+        {/* <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Visitor Management System</Text> */}
         {isLoading ? (
           <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
         ) : (
@@ -77,6 +85,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  logo: {
+    width: 100,  // Adjust width
+    height: 100, // Adjust height
+    resizeMode: 'contain',
+    marginBottom: 20,
   },
   title: {
     fontSize: 36,

@@ -109,19 +109,19 @@ const HelpPage: React.FC = () => {
 
         {renderSection('Contact Us', (
           <>
-            <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>If you have any questions or need further assistance, feel free to contact us:</Text>
+            <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>If you have any feedback, questions or need further assistance, feel free to contact us:</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
               <Ionicons name="mail-outline" size={20} color={colors.primary} />
-              <Text style={{ color: colors.text, marginLeft: 8 }}>support@yourapp.com</Text>
+              <Text style={{ color: colors.text, marginLeft: 8 }}>Linkspacetechnologiesltd@gmail.com</Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {/* <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons name="call-outline" size={20} color={colors.primary} />
               <Text style={{ color: colors.text, marginLeft: 8 }}>+1 234 567 890</Text>
-            </View>
+            </View> */}
           </>
         ))}
 
-        {renderSection('Send Us Your Feedback', (
+        {/* {renderSection('Send Us Your Feedback', (
           <>
             <TextInput
               style={{ 
@@ -153,7 +153,7 @@ const HelpPage: React.FC = () => {
               <Text style={{ color: colors.surface, fontSize: 18, fontWeight: '600' }}>Send Feedback</Text>
             </TouchableOpacity>
           </>
-        ))}
+        ))} */}
       </ScrollView>
       <CustomAlert
         visible={alertConfig.visible}
