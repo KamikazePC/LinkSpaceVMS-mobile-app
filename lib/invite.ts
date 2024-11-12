@@ -2,6 +2,7 @@ import {supabase} from './supabase'
 import {v4 as uuidv4} from 'uuid';
 import moment from 'moment-timezone';
 import { createInviteNotification } from './notifications';
+import { useEffect } from 'react';
 
 //Helper function to generate OTP
 const generateOTP = () => {
@@ -504,82 +505,84 @@ export const deleteInvite = async (id: string, invite: any) => {
 
 export const deleteExpiredInvites = async () => {
     try {
+        const currentDate = moment().toISOString();
+        console.log('Starting deletion process for expired invites');
+        console.log('Current date:', currentDate);
 
-        const currentDate = moment()
+        // Fetch and delete expired invites from each table separately
+        const tables = [
+            'individual_one_time_invites',
+            'individual_recurring_invites',
+            'group_invites'
+        ];
 
+        let totalDeleted = 0;
 
-      console.log('Starting deletion process for expired invites');
-      console.log('Current date:', currentDate);
-  
-      // Fetch expired invites from the individual one-time invites collection
-      const { data: oneTimeExpiredInvites, error: oneTimeError } = await supabase
-        .from('individual_one_time_invites')
-        .select('*')  // Select all invites for deletion
-        .eq('status', 'pending')
-        .lt('end_date_time', currentDate);
-  
-      if (oneTimeError) {
-        throw new Error(`Error fetching one-time expired invites: ${oneTimeError.message}`);
-      }
-  
-      // Fetch expired invites from the individual recurring invites collection
-      const { data: recurringExpiredInvites, error: recurringError } = await supabase
-        .from('individual_recurring_invites')
-        .select('*')
-        .eq('status', 'pending')
-        .lt('end_date_time', currentDate);
-  
-      if (recurringError) {
-        throw new Error(`Error fetching recurring expired invites: ${recurringError.message}`);
-      }
-  
-      // Fetch expired invites from the group invites collection
-      const { data: groupExpiredInvites, error: groupError } = await supabase
-        .from('group_invites')
-        .select('*')
-        .eq('status', 'pending')
-        .lt('end_date_time', currentDate);
-  
-      if (groupError) {
-        throw new Error(`Error fetching group expired invites: ${groupError.message}`);
-      }
-  
-      // Combine invite IDs from all collections for deletion
-      const allExpiredInviteIds = [
-        ...(oneTimeExpiredInvites ?? []).map((invite) => invite.id),
-        ...(recurringExpiredInvites ?? []).map((invite) => invite.id),
-        ...(groupExpiredInvites ?? []).map((invite) => invite.id),
-      ];
-  
-      // Create deletion promises for each expired invite
-      const deletePromises = [
-        supabase.from('individual_one_time_invites').delete().in('id', allExpiredInviteIds),
-        supabase.from('individual_recurring_invites').delete().in('id', allExpiredInviteIds),
-        supabase.from('group_invites').delete().in('id', allExpiredInviteIds),
-      ];
-  
-      // Wait for all deletions to complete
-      await Promise.all(deletePromises);
-  
-      console.log(`Deleted expired invites: ${allExpiredInviteIds.length}`);
+        for (const tableName of tables) {
+            // First fetch expired invites for this specific table
+            const { data: expiredInvites, error: fetchError } = await supabase
+                .from(tableName)
+                .select('id')
+                .eq('status', 'pending')
+                .lt('end_date_time', currentDate);
+
+            if (fetchError) {
+                console.error(`Error fetching expired invites from ${tableName}:`, fetchError);
+                continue;
+            }
+
+            if (expiredInvites && expiredInvites.length > 0) {
+                const inviteIds = expiredInvites.map(invite => invite.id);
+                
+                // Delete expired invites for this table
+                const { data: deletedData, error: deleteError } = await supabase
+                    .from(tableName)
+                    .delete()
+                    .in('id', inviteIds)
+                    .select();
+
+                if (deleteError) {
+                    console.error(`Error deleting expired invites from ${tableName}:`, deleteError);
+                } else {
+                    const deletedCount = deletedData?.length ?? 0;
+                    totalDeleted += deletedCount;
+                    console.log(`Deleted ${deletedCount} expired invites from ${tableName}`);
+                }
+            }
+        }
+
+        console.log(`Total deleted expired invites: ${totalDeleted}`);
+        return totalDeleted;
     } catch (error: any) {
-      console.error('Error deleting expired invites:', error.message || error);
-      throw new Error('Error deleting expired invites: ' + error.message);
+        console.error('Error deleting expired invites:', error.message || error);
+        throw new Error('Error deleting expired invites: ' + error.message);
     }
-  };
-  
+};
 
+export const scheduleExpiredInviteCleanup = (intervalMinutes: number) => {
+    // Return the interval ID so it can be cleared later
+    const intervalId = setInterval(async () => {
+        try {
+            const deletedCount = await deleteExpiredInvites();
+            console.log(`Completed scheduled cleanup of expired invites. Deleted ${deletedCount} invites`);
+        } catch (error) {
+            console.error('Error in scheduled expired invite cleanup:', error);
+        }
+    }, intervalMinutes * 60 * 1000);
 
-  export const scheduleExpiredInviteCleanup = (intervalMinutes: number) => {
-    setInterval(async () => {
-      try {
-        // Call the deleteExpiredInvites function directly to clean up all expired invites
-        await deleteExpiredInvites();
-  
-        console.log('Completed scheduled cleanup of expired invites');
-      } catch (error) {
-        console.error('Error in scheduled expired invite cleanup:', error);
-      }
-    }, intervalMinutes * 60 * 1000);  // Interval in milliseconds
-  };
-  
+    return intervalId;
+};
+
+// Custom hook to handle the cleanup schedule
+export const useExpiredInviteCleanup = (intervalMinutes: number) => {
+    useEffect(() => {
+        console.log('Setting up expired invite cleanup schedule');
+        const intervalId = scheduleExpiredInviteCleanup(intervalMinutes);
+
+        // Cleanup function to clear the interval when the component unmounts
+        return () => {
+            console.log('Cleaning up expired invite cleanup schedule');
+            clearInterval(intervalId);
+        };
+    }, [intervalMinutes]); // Only re-run if intervalMinutes changes
+};

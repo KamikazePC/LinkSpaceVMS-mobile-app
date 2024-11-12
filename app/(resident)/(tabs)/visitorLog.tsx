@@ -6,7 +6,7 @@ import moment from 'moment';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import VisitorCard from '../../../components/VisitorCard';
 import VisitorDetailsModal from '../../../components/visitor-details-modal';
-import { fetchInvites, scheduleExpiredInviteCleanup } from '../../../lib/invite';
+import { fetchInvites, scheduleExpiredInviteCleanup, useExpiredInviteCleanup } from '../../../lib/invite';
 import { useGlobalContext } from '../../../context/GlobalProvider';
 import { useTheme } from '../../../context/ThemeContext';
 import { lightColors, darkColors } from '../../../constants/ThemeColors';
@@ -57,6 +57,8 @@ const VisitorLog: React.FC = () => {
       console.error('Error fetching invites:', error);
     }
   }, [user]);
+  
+  useExpiredInviteCleanup(5)
 
   useEffect(() => {
     fetchAndSetInvites();
@@ -65,7 +67,7 @@ const VisitorLog: React.FC = () => {
       .channel('public:group_invites')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'group_invites' }, (payload) => {
         if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-          fetchAndSetInvites(); // Fetch invites on any new or updated invite
+          fetchAndSetInvites();
         }
       })
       .subscribe();
@@ -73,7 +75,7 @@ const VisitorLog: React.FC = () => {
       .channel('public:individual_one_time_invite')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'individual_one_time_invite' }, (payload) => {
         if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-          fetchAndSetInvites(); // Fetch invites on any new or updated invite
+          fetchAndSetInvites();
         }
       })
       .subscribe();
@@ -81,13 +83,10 @@ const VisitorLog: React.FC = () => {
       .channel('public:individual_recurring_invites')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'individual_recurring_invites' }, (payload) => {
         if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-          fetchAndSetInvites(); // Fetch invites on any new or updated invite
+          fetchAndSetInvites();
         }
       })
       .subscribe();
-
-    // Schedule cleanup of expired invites
-    scheduleExpiredInviteCleanup(30); // Run every 30 minutes
 
     return () => {
       supabase.removeChannel(groupInviteSubscription);
@@ -95,6 +94,7 @@ const VisitorLog: React.FC = () => {
       supabase.removeChannel(recurringInviteSubscription);
     };
   }, [fetchAndSetInvites]);
+
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

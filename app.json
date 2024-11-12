@@ -6,7 +6,7 @@
     "slug": "Linkspace-Vms-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/black-logo-mark.png",
+    "icon": "./assets/icon-mark.png",
     "userInterfaceStyle": "light",
     "splash": {
       // "image": "./assets/splash.png",
@@ -23,7 +23,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/black-logo-mark.png",
+        "foregroundImage": "./assets/icon-mark.png",
         "backgroundColor": "#fbf8f3"
       },
       "package": "com.priestly.LinkspaceVmsmobileapp",
